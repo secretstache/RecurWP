@@ -7,7 +7,7 @@ class RecurWPGFAddOn extends GFAddOn {
 	protected $_version = RECURWP_VERSION;
 	protected $_min_gravityforms_version = '1.9';
 	protected $_slug = 'recurwp';
-	protected $_path = 'recurwp/gf-addon/addon.php';
+	protected $_path = RECURWP_DIR_INC . 'gf-addon/addon.php';
 	protected $_full_path = __FILE__;
 	protected $_title = 'RecurWP Gravity Forms Add-On';
 	protected $_short_title = 'RecurWP';
