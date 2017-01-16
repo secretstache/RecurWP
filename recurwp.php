@@ -24,6 +24,7 @@ define( 'RECURWP_DIR_INC', trailingslashit(RECURWP_DIR . '/inc') );
 define( 'RECURWP_DIR_LIB', trailingslashit(RECURWP_DIR . '/lib') );
 
 // Grab files
+require_once( RECURWP_DIR_INC . 'class-recurwp.php' );
 require_once( RECURWP_DIR_INC . 'gf-addon/addon.php' );
 if ( ! class_exists('Recurly_Base') )
     require_once( RECURWP_DIR_LIB . 'recurly.php' );
