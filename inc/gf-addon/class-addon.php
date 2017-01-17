@@ -1,20 +1,164 @@
 <?php
 
-GFForms::include_addon_framework();
+// Include the payment add-on framework.
+GFForms::include_payment_addon_framework();
 
-class RecurWPGFAddOn extends GFAddOn {
+/**
+ * Class RecurWPGFAddOn
+ *
+ * Primary class to manage the RecurWP Gravity Form add-on.
+ *
+ * @since 1.0
+ *
+ * @uses GFPaymentAddOn
+**/
+class RecurWPGFAddOn extends GFPaymentAddOn {
 
-    protected $_version = RECURWP_VERSION;
-    protected $_min_gravityforms_version = '1.9';
-    protected $_slug = 'recurwp';
-    protected $_path = RECURWP_DIR_INC . 'gf-addon/addon.php';
-    protected $_full_path = __FILE__;
-    protected $_title = 'RecurWP Gravity Forms Add-On';
-    protected $_short_title = 'RecurWP';
-    protected $_supports_callbacks = true;
-    protected $_requires_credit_card = false;
-
+    /**
+     * Contains an instance of this class, if available.
+     *
+     * @since  1.0
+     * @access private
+     *
+     * @used-by RecurWPGFAddOn::get_instance()
+     *
+     * @var object $_instance If available, contains an instance of this class.
+     */
     private static $_instance = null;
+
+    /**
+     * Defines the version of the Stripe Add-On.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @used-by RecurWPGFAddOn::scripts()
+     *
+     * @var string $_version Contains the version, defined from stripe.php
+     */
+    protected $_version = RECURWP_VERSION;
+
+    /**
+     * Defines the minimum Gravity Forms version required.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var string $_min_gravityforms_version The minimum version required.
+     */
+    protected $_min_gravityforms_version = '1.9';
+
+    /**
+     * Defines the plugin slug.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var string $_slug The slug used for this plugin.
+     */
+    protected $_slug = 'recurwp';
+
+    /**
+     * Defines the main plugin file.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var string $_path The path to the main plugin file, relative to the plugins folder.
+     */
+    protected $_path = RECURWP_DIR_INC . 'gf-addon/addon.php';
+
+    /**
+     * Defines the full path to this class file.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var string $_full_path The full path.
+     */
+    protected $_full_path = __FILE__;
+
+    /**
+     * Defines the URL where this Add-On can be found.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var string $_url The URL of the Add-On.
+     */
+    protected $_url = 'https://www.secretstache.com/';
+
+    /**
+     * Defines the title of this Add-On.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var string $_title The title of the Add-On.
+     */
+    protected $_title = 'RecurWP Gravity Forms Add-On';
+
+    /**
+     * Defines the short title of the Add-On.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var string $_short_title The short title.
+     */
+    protected $_short_title = 'RecurWP';
+
+    /**
+     * Defines if Add-On should use Gravity Forms servers for update data.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var bool $_enable_rg_autoupgrade true
+     */
+    protected $_enable_rg_autoupgrade = false;
+
+    /**
+     * Defines if user will not be able to create feeds for a form until a credit card field has been added.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var bool $_requires_credit_card true.
+     */
+    protected $_requires_credit_card = true;
+
+    /**
+     * Defines if callbacks/webhooks/IPN will be enabled and the appropriate database table will be created.
+     *
+     * @since  1.0
+     * @access protected
+     *
+     * @var bool $_supports_callbacks true
+     */
+    protected $_supports_callbacks = true;
+
+    /**
+     * Recurly requires monetary amounts to be formatted as the smallest unit for the currency being used e.g. cents.
+     *
+     * @since  1.10.1
+     * @access protected
+     *
+     * @var bool $_requires_smallest_unit true
+     */
+    protected $_requires_smallest_unit = true;
+
+    /**
+     * Holds the custom meta key currently being processed.
+     *
+     * @since  2.1.1
+     * @access protected
+     *
+     * @used-by RecurWPGFAddOn::maybe_override_field_value()
+     *
+     * @var string $_current_meta_key The meta key currently being processed.
+     */
+    protected $_current_meta_key = '';
 
     /**
      * Get an instance of this class.
@@ -49,19 +193,14 @@ class RecurWPGFAddOn extends GFAddOn {
     public function scripts() {
         $scripts = array(
             array(
-                'handle'  => 'my_script_js',
-                'src'     => $this->get_base_url() . '/js/my_script.js',
+                'handle'  => 'recurly.js',
+                'src'     => 'https://js.recurly.com/v4/recurly.js',
                 'version' => $this->_version,
                 'deps'    => array( 'jquery' ),
-                'strings' => array(
-                    'first'  => esc_html__( 'First Choice', 'recurwp' ),
-                    'second' => esc_html__( 'Second Choice', 'recurwp' ),
-                    'third'  => esc_html__( 'Third Choice', 'recurwp' )
-                ),
                 'enqueue' => array(
                     array(
-                        'admin_page' => array( 'form_settings' ),
-                        'tab'        => 'recurwp'
+                        'admin_page' => array( 'plugin_settings' ),
+                        'tab'        => array( $this->_slug, $this->get_short_title() ),
                     )
                 )
             ),
@@ -69,26 +208,6 @@ class RecurWPGFAddOn extends GFAddOn {
         );
 
         return array_merge( parent::scripts(), $scripts );
-    }
-
-    /**
-     * Return the stylesheets which should be enqueued.
-     *
-     * @return array
-     */
-    public function styles() {
-        $styles = array(
-            array(
-                'handle'  => 'my_styles_css',
-                'src'     => $this->get_base_url() . '/css/my_styles.css',
-                'version' => $this->_version,
-                'enqueue' => array(
-                    array( 'field_types' => array( 'poll' ) )
-                )
-            )
-        );
-
-        return array_merge( parent::styles(), $styles );
     }
 
 
