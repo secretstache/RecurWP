@@ -170,9 +170,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
      */
     public function init() {
         parent::init();
-        add_filter( 'gform_register_init_scripts', array( $this, 'register_init_scripts' ), 10, 3 );
-        add_filter( 'gform_field_content', array( $this, 'add_recurly_inputs' ), 10, 5 );
-        add_filter( 'gform_field_validation', array( $this, 'pre_validation' ), 10, 4 );
         add_filter( 'gform_submit_button', array( $this, 'form_submit_button' ), 10, 2 );
     }
 
@@ -197,7 +194,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
             ),
             array(
                 'handle'    => 'recurwp_frontend',
-                'src'       => $this->get_base_url() . '/js/frontend.js',
+                'src'       => $this->get_base_url() . '/../../js/frontend.js',
                 'version'   => $this->_version,
                 'deps'      => array( 'jquery', 'recurly.js', 'gform_json' ),
                 'in_footer' => false,
@@ -245,34 +242,29 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $default_settings = parent::feed_settings_fields();
 
         // Prepare customer information fields.
-        $customer_info_field = array(
-            'name'       => 'customerInformation',
-            'label'      => esc_html__( 'Customer Information', 'recurwp' ),
-            'type'       => 'field_map',
-            'field_map'  => array(
-                array(
-                    'name'       => 'email',
-                    'label'      => esc_html__( 'Email', 'recurwp' ),
-                    'required'   => true,
-                    'field_type' => array( 'email', 'hidden' ),
-                ),
-                array(
-                    'name'     => 'description',
-                    'label'    => esc_html__( 'Description', 'recurwp' ),
-                    'required' => false,
-                ),
-                array(
-                    'name'       => 'coupon',
-                    'label'      => esc_html__( 'Coupon', 'recurwp' ),
-                    'required'   => false,
-                    'field_type' => array( 'coupon', 'text' ),
-                    'tooltip'    => '<h6>' . esc_html__( 'Coupon', 'recurwp' ) . '</h6>' . esc_html__( 'Select which field contains the coupon code to be applied to the recurring charge(s). The coupon must also exist in your Recurly Dashboard.', 'recurwp' ),
-                ),
-            ),
-        );
-
-        // Replace default billing information fields with customer information fields.
-        $default_settings = $this->replace_field( 'billingInformation', $customer_info_field, $default_settings );
+        // $customer_info_field = array(
+        //     'name'       => 'customerInformation',
+        //     'label'      => esc_html__( 'Customer Information', 'recurwp' ),
+        //     'type'       => 'field_map',
+        //     'field_map'  => array(
+        //         array(
+        //             'name'       => 'email',
+        //             'label'      => esc_html__( 'Email', 'recurwp' ),
+        //             'required'   => true,
+        //             'field_type' => array( 'email', 'hidden' ),
+        //         ),
+        //         array(
+        //             'name'       => 'coupon',
+        //             'label'      => esc_html__( 'Coupon', 'recurwp' ),
+        //             'required'   => false,
+        //             'field_type' => array( 'coupon', 'text' ),
+        //             'tooltip'    => '<h6>' . esc_html__( 'Coupon', 'recurwp' ) . '</h6>' . esc_html__( 'Select which field contains the coupon code to be applied to the recurring charge(s). The coupon must also exist in your Recurly Dashboard.', 'recurwp' ),
+        //         ),
+        //     ),
+        // );
+        //
+        // // Replace default billing information fields with customer information fields.
+        // $default_settings = $this->replace_field( 'billingInformation', $customer_info_field, $default_settings );
 
         // Define end of Metadata tooltip based on transaction type.
         if ( 'subscription' === $this->get_setting( 'transactionType' ) ) {
@@ -306,7 +298,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         foreach ($recurly_plans as $plan) {
             $recurring_choices[] = array(
                 'label' => $plan['name'],
-                'value' => $plan['plan_code']
+                'value' => $plan['unit_amount_in_cents']['USD']
             );
         }
 
@@ -377,49 +369,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     // # FRONTEND FUNCTIONS --------------------------------------------------------------------------------------------
 
     /**
-     * Register Recurly script when displaying form.
-     *
-     * @since  1.0.0
-     * @access public
-     *
-     * @param array $form         Form object.
-     * @param array $field_values Current field values. Not used.
-     * @param bool  $is_ajax      If form is being submitted via AJAX.
-     *
-     * @return void
-     */
-    public function register_init_scripts( $form, $field_values, $is_ajax ) {
-
-        // If form does not have a Recurly feed and does not have a credit card field, exit.
-        if ( ! $this->has_feed( $form['id'] ) ) {
-            return;
-        }
-
-        $cc_field = $this->get_credit_card_field( $form );
-
-        if ( ! $cc_field ) {
-            return;
-        }
-
-        // Prepare Recurly Javascript arguments.
-        $args = array(
-            'apiKey'     => '', // TODO: Get key dynamically
-            'formId'     => $form['id'],
-            'ccFieldId'  => $cc_field->id,
-            'ccPage'     => $cc_field->pageNumber,
-            'isAjax'     => $is_ajax,
-            'cardLabels' => $this->get_card_labels(),
-        );
-
-        // Initialize Recurly script.
-        $script = 'new RecurWP( ' . json_encode( $args ) . ' );';
-
-        // Add Recurly script to form scripts.
-        GFFormDisplay::add_init_script( $form['id'], 'recurly', GFFormDisplay::ON_PAGE_RENDER, $script );
-
-    }
-
-    /**
      * Check if the form has an active Recurly feed and a credit card field.
      *
      * @since  1.0.0
@@ -435,29 +384,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
 
     }
 
-    /**
-     * Add required Recurly inputs to form.
-     *
-     * @since  1.0.0
-     * @access public
-     *
-     * @param string  $content The field content to be filtered.
-     * @param object  $field   The field that this input tag applies to.
-     * @param integer $form_id The current Form ID.
-     *
-     * @return string $content HTML formatted content.
-     */
-    public function add_recurly_inputs( $content, $field, $form_id ) {
-
-        // If this form does not have a Recurly feed or if this is not a credit card field, return field content.
-        if ( ! $this->has_feed( $form_id ) || 'creditcard' !== $field->get_input_type() ) {
-            return $content;
-        }
-        $content .= '<input type="hidden" name="recurly-token" data-recurly="token">';
-
-        return $content;
-
-    }
 
     /**
     * Add the text in the plugin settings to the bottom of the form if enabled for this form.
@@ -479,21 +405,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
 
 
     // # ADMIN FUNCTIONS -----------------------------------------------------------------------------------------------
-
-    /**
-     * Initialize the AJAX hooks.
-     *
-     * @since  1.0.0
-     * @access public
-     *
-     * @return void
-     */
-    public function init_ajax() {
-
-        parent::init_ajax();
-
-        add_action( 'wp_ajax_gf_validate_secret_key', array( $this, 'ajax_validate_secret_key' ) );
-    }
 
     /**
     * Configures the settings which should be rendered on the add-on settings tab.
@@ -542,7 +453,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                     array(
                         'name'              => 'recurly_public_key',
                         'tooltip'           => esc_html__( '', 'recurwp' ),
-                        'label'             => esc_html__( 'Recurly API Private Key', 'recurwp' ),
+                        'label'             => esc_html__( 'Recurly API Public Key', 'recurwp' ),
                         'type'              => 'text',
                         'class'             => 'small'
                     ),
@@ -590,9 +501,107 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
 
     // # RECURLY TRANSACTIONS -------------------------------------------------------------------------------------------------------
 
+    /**
+     * Subscribe the user to a Recurly plan.
+     *
+     * 1 - Update/Create new account.
+     * 2 - Create new subscription by subscribing customer to plan.
+     *
+     * @since  1.0
+     * @access public
+     *
+     * @param array $feed            The feed object currently being processed.
+     * @param array $submission_data The customer and transaction data.
+     * @param array $form            The form object currently being processed.
+     * @param array $entry           The entry object currently being processed.
+     *
+     * @return array Subscription details if successful. Contains error message if failed.
+     */
+    public function subscribe( $feed, $submission_data, $form, $entry ) {
 
-    // # RECURLY HELPERS -------------------------------------------------------------------------------------------------------
+        // Instantiate Recurly
+        $recurly = new RecurWP_Recurly();
 
+        // Billing Info
+        $billing_info = array(
+            array(
+                'name' => 'account_code',
+                'value' => $submission_data['email']
+            ),
+            array(
+                'name' => 'first_name',
+                'value' => 'Verena'
+            ),
+            array(
+                'name' => 'last_name',
+                'value' => 'Example'
+            ),
+            array(
+                'name' => 'address1',
+                'value' => $submission_data['address']
+            ),
+            array(
+                'name' => 'address2',
+                'value' => $submission_data['address2']
+            ),
+            array(
+                'name' => 'city',
+                'value' => $submission_data['city']
+            ),
+            array(
+                'name' => 'state',
+                'value' => $submission_data['state']
+            ),
+            array(
+                'name' => 'zip',
+                'value' => $submission_data['zip']
+            ),
+            array(
+                'name' => 'country',
+                'value' => $submission_data['country']
+            ),
+            array(
+                'name' => 'number',
+                'value' => '4111-1111-1111-1111'
+            ),
+            array(
+                'name' => 'month',
+                'value' => $submission_data['card_expiration_date'][0]
+            ),
+            array(
+                'name' => 'year',
+                'value' => $submission_data['card_expiration_date'][1]
+            )
+        );
+        $account_code = $submission_data['email'];
+        $plan_code = 'test_1';
+
+        // Create user account
+        $account_created = $recurly->maybe_create_account( $account_code );
+
+        // Debug
+        $this->log_debug( ($account_created['status']) ? '[SUCCESS] Account creation for ' . $account_code : '[ERROR]: Account creation failed for' . $account_code );
+
+        if ( $account_created['status'] ) {
+
+            // Update billing info
+            $billing_updated = $recurly->update_billing_info( $billing_info );
+
+            if ( $billing_updated['status'] ) {
+
+                // Create subscription
+                $subscription_created = $recurly->create_subscription( $account_code, $plan_code );
+            }
+        }
+
+        // Return data
+        return array(
+            'is_success'      => true,
+            'subscription_id' => $plan_code,
+            'customer_id'     => $account_code,
+            'amount'          => '40',
+        );
+    }
 
     // # OTHER HELPERS -------------------------------------------------------------------------------------------------------
 

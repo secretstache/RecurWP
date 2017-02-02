@@ -48,6 +48,36 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         }
 
         /**
+         * Send response status with error
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @return array
+         */
+        public function send_response( $status = true, $error = '' ) {
+            $response = array(
+                'status' => $status,
+                'error' => $error
+            );
+            return $response;
+        }
+
+        /**
+         * XML decode
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @return array
+         */
+        public function xml_decode( $xml ) {
+
+            // TODO: Improve
+            return json_decode( json_encode( (array) simplexml_load_string( $xml ) ), 1);
+        }
+
+        /**
          * Retrieves RecurWP Gravity Form options
          *
          * @since  1.0.0
@@ -65,7 +95,6 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
             return isset( $options[ $option_name ] ) ? $options[ $option_name ] : null;
         }
 
-
         /**
          * Validate Recurly Info
          *
@@ -77,7 +106,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          * @param bool $cache           Validates recurly info again if false
          *
          * @return bool
-        **/
+         */
         public function validate_info( $private_key = null, $sub_domain = null, $cache = true ) {
 
             $recurly_key_info = get_transient( 'recurwp_recurly_key_info' );
@@ -135,18 +164,28 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          */
         public function get_plans() {
 
-            // Instantiate recurly client
-            $recurly_client = self::include_api();
+            try {
+                // Instantiate recurly client
+                $recurly_client = self::include_api();
 
-            // Get plans
-            $plans = $recurly_client->request('GET', '/plans');
-            $plans_xml = $plans->body;
+                // Get plans
+                $plans = $recurly_client->request('GET', '/plans');
 
-            // Quicky dirty way to convert XML to php array
-            // TODO: Improve
-            $plans = json_decode( json_encode( (array) simplexml_load_string( $plans_xml ) ), 1);
-            return $plans['plan'];
+                // Test successful connection
+                if ($plans->statusCode == '200') {
 
+                    $plans_xml = $plans->body;
+
+                    // Quicky dirty way to convert XML to php array
+                    // TODO: Improve
+                    $plans = json_decode( json_encode( (array) simplexml_load_string( $plans_xml ) ), 1);
+
+                    return $plans['plan'];
+
+                }
+            } catch (Recurly_ValidationError $e) {
+                print "Plans not found: $e";
+            }
         }
 
         /**
@@ -162,57 +201,108 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          *
          * @return void
          */
-        public function maybe_create_account( $email, $account_data = array('name' => '', 'value' => '') ) {
+        public function maybe_create_account( $account_code ) {
 
-            // Instantiate recurly client
-            $api = self::include_api();
+            try {
 
-            // Get user account
-            $account = $api->request('GET', "/accounts/$email");
+                // Instantiate recurly client
+                $api = self::include_api();
 
-            // Create account if no account
-            if ( $account->statusCode != '200' ) {
+                // Get user account
+                $account = $api->request('GET', "/accounts/$account_code");
 
-                try {
-                    $account = new Recurly_Account($email);
+                // Create account if no account
+                if ( $account->statusCode != '200' ) {
 
-                    foreach ( $account_data as $account_field ) {
+                        $account = new Recurly_Account($account_code);
+                        $account->email = $account_code;
+                        $account->create();
 
-                        // Make sure API actually allows the field
-                        if ( in_array( $account_field['name'], static::$account_writeable_attributes ) ) {
-                            $account->$account_field['name'] = $account_field['value'];
-                        }
+                        // return true;
+                        return self::send_response();
 
-                    }
-                    // Lets do this
-                    $account->create();
-
-                } catch (Recurly_ValidationError $e) {
-                    print "Invalid Account: $e";
                 }
-            }
 
-            // Update the account with new info
-            elseif ( $account->statusCode == '200' ) {
+                // Update the account with new info
+                elseif ( $account->statusCode == '200' ) {
 
-                try {
-
-                    foreach ( $account_data as $account_field ) {
-
-                        // Make sure API actually allows the field
-                        if ( in_array( $account_field['name'], static::$account_writeable_attributes ) ) {
-                            $account->$account_field['name'] = $account_field['value'];
-                        }
-
-                    }
-                    // Lets do this
-                    $account->create();
-
-                } catch (Recurly_ValidationError $e) {
-                    print "Invalid Account: $e";
+                    // Get account code
+                    // return true;
+                    return self::send_response();
                 }
+
+            } catch (Recurly_ValidationError $e) {
+                // print "Invalid Account: $e";
+                // return false;
+                return self::send_response(false, $e);
             }
         }
 
+        /**
+         * Update billing info
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @param string $option_name   Name of the option
+         *
+         * @return bool
+         */
+        public function update_billing_info( $user_billing_info = array() ) {
+            try {
+
+                $billing_info = new Recurly_BillingInfo();
+
+                foreach( $user_billing_info as $info ) {
+                    $billing_info->$info['name'] = $info['value'];
+                }
+
+                $billing_info->create();
+                return true;
+            } catch (Recurly_ValidationError $e) {
+
+                // The data or card are invalid
+                return self::send_response(false, "Invalid data or card: $e");
+            } catch (Recurly_NotFoundError $e) {
+
+                // Could not find account
+                return self::send_response(false, "Not Found: $e");
+            }
+        }
+
+        /**
+         * Create subscription
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @param string $account_code  Recurly Account code
+         * @param string $plan_code     Recurly Plan code
+         * @param bool $currency        Currency
+         *
+         * @return bool
+         */
+        public function create_subscription( $account_code, $plan_code, $currency = 'USD' ) {
+            try {
+                // Instantiate recurly client
+                $api = self::include_api();
+
+                $subscription = new Recurly_Subscription();
+                $subscription->plan_code = $plan_code;
+                $subscription->currency = $currency;
+                $account = Recurly_Account::get($account_code);
+                $subscription->account = $account;
+                $subscription->create();
+
+                return true;
+
+            } catch (Recurly_ValidationError $e) {
+
+                return self::send_response(false, $e);
+            } catch (Recurly_NotFoundError $e) {
+
+                return self::send_response(false, "Account not found.\n");
+            }
+        }
     }
 }
