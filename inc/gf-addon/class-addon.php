@@ -241,37 +241,28 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         // Get default payment feed settings fields.
         $default_settings = parent::feed_settings_fields();
 
-        // Prepare customer information fields.
-        // $customer_info_field = array(
-        //     'name'       => 'customerInformation',
-        //     'label'      => esc_html__( 'Customer Information', 'recurwp' ),
-        //     'type'       => 'field_map',
-        //     'field_map'  => array(
-        //         array(
-        //             'name'       => 'email',
-        //             'label'      => esc_html__( 'Email', 'recurwp' ),
-        //             'required'   => true,
-        //             'field_type' => array( 'email', 'hidden' ),
-        //         ),
-        //         array(
-        //             'name'       => 'coupon',
-        //             'label'      => esc_html__( 'Coupon', 'recurwp' ),
-        //             'required'   => false,
-        //             'field_type' => array( 'coupon', 'text' ),
-        //             'tooltip'    => '<h6>' . esc_html__( 'Coupon', 'recurwp' ) . '</h6>' . esc_html__( 'Select which field contains the coupon code to be applied to the recurring charge(s). The coupon must also exist in your Recurly Dashboard.', 'recurwp' ),
-        //         ),
-        //     ),
-        // );
-        //
-        // // Replace default billing information fields with customer information fields.
-        // $default_settings = $this->replace_field( 'billingInformation', $customer_info_field, $default_settings );
+        $fields = array(
+            array(
+                'name'          => 'pricingInformation',
+                'label'         => __( 'Pricing Information', 'recurwp' ),
+                'type'          => 'field_map',
+                'field_map'     => array(
+                    array(
+                        'name' => 'plan',
+                        'label' => esc_html__( 'Plan', 'recurwp' ),
+                        'required' => true
+                    ),
+                    array(
+                        'name' => 'coupon',
+                        'label' => esc_html__( 'Coupon', 'recurwp' ),
+                        'required' => false
+                    )
+                ),
+                'tooltip'       => '<h6>' . __( 'Pricing Information', 'recurwp' ) . '</h6>' . __( 'Map your form fields to the available listed fields.', 'recurwp' )
+            ),
+        );
 
-        // Define end of Metadata tooltip based on transaction type.
-        if ( 'subscription' === $this->get_setting( 'transactionType' ) ) {
-            $info = esc_html__( 'You will see this data when viewing a customer page.', 'recurwp' );
-        } else {
-            $info = esc_html__( 'You will see this data when viewing a payment page.', 'recurwp' );
-        }
+        $default_settings = $this->add_field_before( 'billingInformation', $fields, $default_settings );
 
         // Remove the fields we don't need
         $default_settings = $this->remove_field( 'recurringTimes', $default_settings );
@@ -284,6 +275,34 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     }
 
     /**
+     * Billing info fields
+     *
+     * @since  1.0.0
+     * @access public
+     *
+     * @return array Billing info fields.
+     */
+    public function billing_info_fields() {
+
+        $fields = array(
+            array( 'name' => 'firstName', 'label' => esc_html__( 'First Name', 'recurwp' ), 'required' => false ),
+            array( 'name' => 'lastName', 'label' => esc_html__( 'Last Name', 'recurwp' ), 'required' => false ),
+            array( 'name' => 'username', 'label' => esc_html__( 'Username', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'email', 'label' => esc_html__( 'Email', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'phone', 'label' => esc_html__( 'Phone', 'recurwp' ), 'required' => false ),
+            array( 'name' => 'company', 'label' => esc_html__( 'Company', 'recurwp' ), 'required' => false ),
+            array( 'name' => 'address', 'label' => esc_html__( 'Address', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'address2', 'label' => esc_html__( 'Address 2', 'recurwp' ), 'required' => false ),
+            array( 'name' => 'city', 'label' => esc_html__( 'City', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'state', 'label' => esc_html__( 'State', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'zip', 'label' => esc_html__( 'Zip', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'country', 'label' => esc_html__( 'Country', 'recurwp' ), 'required' => true ),
+        );
+
+        return $fields;
+    }
+
+    /**
      * Provides choices (Recurly Plans) for Recurring Amount
      *
      * @since  1.0.0
@@ -292,13 +311,19 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
      * @return array An array of choices (Recurly Plans)
      */
     public function recurring_amount_choices() {
+
+        // Instantiate RecurWP
+        $recurly = new RecurWP_Recurly();
+
         $form                = $this->get_current_form();
         $recurly_plans       = RecurWP_Recurly::get_plans();
         $recurring_choices   = $this->get_payment_choices( $form );
         foreach ($recurly_plans as $plan) {
+            $name      = $plan['name'];
+            $price     =  $recurly->cents_to_dollars($plan['unit_amount_in_cents']['USD']);
             $recurring_choices[] = array(
-                'label' => $plan['name'],
-                'value' => $plan['unit_amount_in_cents']['USD']
+                'label' => $name . ' - $' . $price,
+                'value' => $price
             );
         }
 

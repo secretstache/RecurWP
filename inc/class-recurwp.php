@@ -78,6 +78,24 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         }
 
         /**
+         * Convert cents to dollars
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @return string
+         */
+        public function cents_to_dollars( $cents, $prefix = false ) {
+            if ( ! $prefix ) {
+
+                return number_format( ($cents / 100) , 2, '.', ' ');
+            } else {
+
+                return money_format('$%i', ($cents / 100));
+            }
+        }
+
+        /**
          * Retrieves RecurWP Gravity Form options
          *
          * @since  1.0.0
