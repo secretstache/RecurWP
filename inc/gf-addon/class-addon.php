@@ -285,9 +285,9 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     public function billing_info_fields() {
 
         $fields = array(
-            array( 'name' => 'firstName', 'label' => esc_html__( 'First Name', 'recurwp' ), 'required' => false ),
-            array( 'name' => 'lastName', 'label' => esc_html__( 'Last Name', 'recurwp' ), 'required' => false ),
-            array( 'name' => 'username', 'label' => esc_html__( 'Username', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'firstName', 'label' => esc_html__( 'First Name', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'lastName', 'label' => esc_html__( 'Last Name', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'username', 'label' => esc_html__( 'Username', 'recurwp' ), 'required' => false ),
             array( 'name' => 'email', 'label' => esc_html__( 'Email', 'recurwp' ), 'required' => true ),
             array( 'name' => 'phone', 'label' => esc_html__( 'Phone', 'recurwp' ), 'required' => false ),
             array( 'name' => 'company', 'label' => esc_html__( 'Company', 'recurwp' ), 'required' => false ),
