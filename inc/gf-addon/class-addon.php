@@ -248,11 +248,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 'type'          => 'field_map',
                 'field_map'     => array(
                     array(
-                        'name' => 'plan',
-                        'label' => esc_html__( 'Plan', 'recurwp' ),
-                        'required' => true
-                    ),
-                    array(
                         'name' => 'coupon',
                         'label' => esc_html__( 'Coupon', 'recurwp' ),
                         'required' => false
@@ -268,7 +263,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $default_settings = $this->remove_field( 'recurringTimes', $default_settings );
         $default_settings = $this->remove_field( 'trial', $default_settings );
         $default_settings = $this->remove_field( 'setupFee', $default_settings );
-        $default_settings = $this->remove_field( 'billingCycle', $default_settings );
 
         return $default_settings;
 
@@ -587,7 +581,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
             ),
             array(
                 'name' => 'number',
-                'value' => '4111-1111-1111-1111'
+                'value' => '4111-1111-1111-1111' // 4111111111111111
             ),
             array(
                 'name' => 'month',
@@ -602,7 +596,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $plan_code = 'test_1';
 
         // Create user account
-        $account_created = $recurly->maybe_create_account( $account_code );
+        $account_created = $recurly->maybe_create_account( $account_code, $billing_info );
 
         // Debug
         $this->log_debug( ($account_created['status']) ? '[SUCCESS] Account creation for ' . $account_code : '[ERROR]: Account creation failed for' . $account_code );

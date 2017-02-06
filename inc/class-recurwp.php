@@ -88,7 +88,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         public function cents_to_dollars( $cents, $prefix = false ) {
             if ( ! $prefix ) {
 
-                return number_format( ($cents / 100) , 2, '.', ' ');
+                return number_format( ($cents / 100) , 2, '.', ',');
             } else {
 
                 return money_format('$%i', ($cents / 100));
@@ -219,7 +219,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          *
          * @return void
          */
-        public function maybe_create_account( $account_code ) {
+        public function maybe_create_account( $account_code, $account_info = array('name' => '', 'value' => '') ) {
 
             try {
 
@@ -236,6 +236,10 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                         $account->email = $account_code;
                         $account->create();
 
+                        foreach( $account_info as $info ) {
+                            $account->$info['name'] = $info['value'];
+                        }
+
                         // return true;
                         return self::send_response();
 
@@ -244,14 +248,17 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                 // Update the account with new info
                 elseif ( $account->statusCode == '200' ) {
 
-                    // Get account code
-                    // return true;
+                    // Update info
+                    foreach( $account_info as $info ) {
+                        $account->$info['name'] = $info['value'];
+                    }
+
+                    // return true
                     return self::send_response();
                 }
 
             } catch (Recurly_ValidationError $e) {
-                // print "Invalid Account: $e";
-                // return false;
+                // return false and error
                 return self::send_response(false, $e);
             }
         }
@@ -266,7 +273,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          *
          * @return bool
          */
-        public function update_billing_info( $user_billing_info = array() ) {
+        public function update_billing_info( $user_billing_info = array('name' => '', 'value' => '') ) {
             try {
 
                 $billing_info = new Recurly_BillingInfo();
@@ -276,7 +283,9 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                 }
 
                 $billing_info->create();
-                return true;
+
+                // return true
+                return self::send_response();
             } catch (Recurly_ValidationError $e) {
 
                 // The data or card are invalid
@@ -312,7 +321,8 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                 $subscription->account = $account;
                 $subscription->create();
 
-                return true;
+                // return true
+                return self::send_response();
 
             } catch (Recurly_ValidationError $e) {
 
