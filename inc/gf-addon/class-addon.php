@@ -314,10 +314,11 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $recurring_choices   = $this->get_payment_choices( $form );
         foreach ($recurly_plans as $plan) {
             $name      = $plan['name'];
+            $code      = $plan['plan_code'];
             $price     =  $recurly->cents_to_dollars($plan['unit_amount_in_cents']['USD']);
             $recurring_choices[] = array(
                 'label' => $name . ' - $' . $price,
-                'value' => $price
+                'value' => $code
             );
         }
 
@@ -339,21 +340,21 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     //
     // }
     //
-    // /**
-    //  * Enable feed duplication on feed list page and during form duplication.
-    //  *
-    //  * @since  1.0.0
-    //  * @access public
-    //  *
-    //  * @param int|array $id The ID of the feed to be duplicated or the feed object when duplicating a form.
-    //  *
-    //  * @return false
-    //  */
-    // public function can_duplicate_feed( $id ) {
-    //
-    //     return false;
-    //
-    // }
+    /**
+     * Enable feed duplication on feed list page and during form duplication.
+     *
+     * @since  1.0.0
+     * @access public
+     *
+     * @param int|array $id The ID of the feed to be duplicated or the feed object when duplicating a form.
+     *
+     * @return false
+     */
+    public function can_duplicate_feed( $id ) {
+
+        return true;
+
+    }
 
     /**
      * Define the markup for the field_map setting table header.
@@ -549,11 +550,11 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
             ),
             array(
                 'name' => 'first_name',
-                'value' => 'Verena'
+                'value' => $submission_data['firstName']
             ),
             array(
                 'name' => 'last_name',
-                'value' => 'Example'
+                'value' => $submission_data['lastName']
             ),
             array(
                 'name' => 'address1',
@@ -593,13 +594,15 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
             )
         );
         $account_code = $submission_data['email'];
-        $plan_code = 'test_1';
+        $plan_code = $feed['meta']['recurringAmount'];
 
         // Create user account
         $account_created = $recurly->maybe_create_account( $account_code, $billing_info );
 
         // Debug
         $this->log_debug( ($account_created['status']) ? '[SUCCESS] Account creation for ' . $account_code : '[ERROR]: Account creation failed for' . $account_code );
+
+        $this->log_debug( print_r($submission_data, 1) );
 
         if ( $account_created['status'] ) {
 
