@@ -13,6 +13,19 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
      */
     class RecurWP_Recurly {
 
+        function __construct() {
+
+            // Get current options
+            $sub_domain = self::get_gf_option('recurly_subdomain');
+            $api_key = self::get_gf_option('recurly_private_key');
+
+            // Configure Reculy API
+            Recurly_Client::$subdomain = $sub_domain;
+            Recurly_Client::$apiKey = $api_key;
+
+            new Recurly_Client();
+
+        }
         /**
          * Fields which can be added/updated for a Recurly Account
          *
@@ -33,7 +46,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          *
          * @return void
          */
-        public function include_api() {
+        public function recurly_client() {
 
             // Get current options
             $sub_domain = self::get_gf_option('recurly_subdomain');
@@ -45,6 +58,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
 
             $recurly_client = new Recurly_Client();
             return $recurly_client;
+
         }
 
         /**
@@ -105,7 +119,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          *
          * @return void
          */
-        public function get_gf_option( $option_name ) {
+        public static function get_gf_option( $option_name ) {
 
             // Get all options
             $options = get_option( 'gravityformsaddon_recurwp_settings' );
@@ -184,7 +198,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
 
             try {
                 // Instantiate recurly client
-                $recurly_client = self::include_api();
+                $recurly_client = self::recurly_client();
 
                 // Get plans
                 $plans = $recurly_client->request('GET', '/plans');
@@ -224,10 +238,10 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
             try {
 
                 // Instantiate recurly client
-                $api = self::include_api();
+                $recurly_client = self::recurly_client();
 
                 // Get user account
-                $account = $api->request('GET', "/accounts/$account_code");
+                $account = $recurly_client->request('GET', "/accounts/$account_code");
 
                 // Create account if no account
                 if ( $account->statusCode != '200' ) {
@@ -310,9 +324,8 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          * @return bool
          */
         public function create_subscription( $account_code, $plan_code, $currency = 'USD' ) {
+
             try {
-                // Instantiate recurly client
-                $api = self::include_api();
 
                 $subscription = new Recurly_Subscription();
                 $subscription->plan_code = $plan_code;
@@ -334,3 +347,4 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         }
     }
 }
+new RecurWP_Recurly();

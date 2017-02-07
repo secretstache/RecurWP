@@ -311,7 +311,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $recurly = new RecurWP_Recurly();
 
         $form                = $this->get_current_form();
-        $recurly_plans       = RecurWP_Recurly::get_plans();
+        $recurly_plans       = $recurly->get_plans();
         $recurring_choices   = $this->get_payment_choices( $form );
         foreach ($recurly_plans as $plan) {
             $name      = $plan['name'];
