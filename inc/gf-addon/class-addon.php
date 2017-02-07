@@ -241,24 +241,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         // Get default payment feed settings fields.
         $default_settings = parent::feed_settings_fields();
 
-        $fields = array(
-            array(
-                'name'          => 'pricingInformation',
-                'label'         => __( 'Pricing Information', 'recurwp' ),
-                'type'          => 'field_map',
-                'field_map'     => array(
-                    array(
-                        'name' => 'coupon',
-                        'label' => esc_html__( 'Coupon', 'recurwp' ),
-                        'required' => false
-                    )
-                ),
-                'tooltip'       => '<h6>' . __( 'Pricing Information', 'recurwp' ) . '</h6>' . __( 'Map your form fields to the available listed fields.', 'recurwp' )
-            ),
-        );
-
-        $default_settings = $this->add_field_before( 'billingInformation', $fields, $default_settings );
-
         // Remove the fields we don't need
         $default_settings = $this->remove_field( 'recurringTimes', $default_settings );
         $default_settings = $this->remove_field( 'trial', $default_settings );
