@@ -263,6 +263,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $default_settings = $this->remove_field( 'recurringTimes', $default_settings );
         $default_settings = $this->remove_field( 'trial', $default_settings );
         $default_settings = $this->remove_field( 'setupFee', $default_settings );
+        $default_settings = $this->remove_field( 'billingCycle', $default_settings );
 
         return $default_settings;
 
