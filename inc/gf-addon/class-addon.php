@@ -579,6 +579,9 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $account_code = $submission_data['email'];
         $plan_code = $feed['meta']['recurringAmount'];
 
+        // TEMP
+        $this->log_debug(print_r($billing_info, 1));
+
         // Create user account
         $account_created = $recurly->maybe_create_account( $account_code, $billing_info );
 
@@ -589,14 +592,27 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
 
         if ( $account_created['status'] ) {
 
+            // TEMP
+            $this->log_debug('Tried to create subscription');
+
             // Update billing info
             $billing_updated = $recurly->update_billing_info( $billing_info );
+
+            // TEMP
+            $this->log_debug(print_r($billing_updated, 1));
 
             if ( $billing_updated['status'] ) {
 
                 // Create subscription
                 $subscription_created = $recurly->create_subscription( $account_code, $plan_code );
+
+                // TEMP
+                $this->log_debug(print_r($subscription_created, 1));
+
             }
+        } else {
+            // TEMP
+            $this->log_debug('Didn\'t try create subscription');
         }
 
         // Return data
