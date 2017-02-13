@@ -245,15 +245,11 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
 
                 // Create account if no account
                 if ( $account->statusCode != '200' ) {
-
                         $account = new Recurly_Account($account_code);
-                        $account->email = $account_code;
-                        $account->create();
-
-                        foreach( $account_info as $info ) {
-                            $account->$info['name'] = $info['value'];
+                        foreach( $account_info as $name => $value ) {
+                            $account->$name = $value;
                         }
-
+                        $account->create();
                         // return true;
                         return self::send_response();
 
@@ -263,8 +259,8 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                 elseif ( $account->statusCode == '200' ) {
 
                     // Update info
-                    foreach( $account_info as $info ) {
-                        $account->$info['name'] = $info['value'];
+                    foreach( $account_info as $name => $value ) {
+                        $account->$name = $value;
                     }
 
                     // return true
@@ -287,13 +283,13 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          *
          * @return bool
          */
-        public function update_billing_info( $user_billing_info = array('name' => '', 'value' => '') ) {
+        public function update_billing_info( $info ) {
             try {
 
                 $billing_info = new Recurly_BillingInfo();
 
-                foreach( $user_billing_info as $info ) {
-                    $billing_info->$info['name'] = $info['value'];
+                foreach ($info as $name => $value) {
+                    $billing_info->$name = $value;
                 }
 
                 $billing_info->create();

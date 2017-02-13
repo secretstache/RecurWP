@@ -526,7 +526,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $recurly = new RecurWP_Recurly();
 
         // Billing Info
-        $billing_info = array(
+        $account_info1 = array(
             array(
                 'name' => 'account_code',
                 'value' => $submission_data['email']
@@ -576,19 +576,45 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 'value' => $submission_data['card_expiration_date'][1]
             )
         );
+
+        $account_info = array(
+            'account_code'      => $submission_data['email'],
+            'email'             => $submission_data['email'],
+            'first_name'        => $submission_data['firstName'],
+            'last_name'         => $submission_data['lastName']
+        );
+
+        $billing_info = array(
+            'account_code'      => $submission_data['email'],
+            'first_name'        => $submission_data['firstName'],
+            'last_name'         => $submission_data['lastName'],
+            'number'            => '4111-1111-1111-1111',
+            'verification_value'=> '123',
+            'month'             => $submission_data['card_expiration_date'][0],
+            'year'              => $submission_data['card_expiration_date'][1],
+            'address1'          => $submission_data['address'],
+            'address2'          => $submission_data['address2'],
+            'city'              => $submission_data['city'],
+            'state'             => $submission_data['state'],
+            'country'           => $submission_data['country'],
+            'zip'               => $submission_data['zip']
+        );
         $account_code = $submission_data['email'];
         $plan_code = $feed['meta']['recurringAmount'];
 
         // TEMP
-        $this->log_debug(print_r($billing_info, 1));
+        $this->log_debug(print_r($account_info, 1));
 
         // Create user account
-        $account_created = $recurly->maybe_create_account( $account_code, $billing_info );
+        $account_created = $recurly->maybe_create_account( $account_code, $account_info );
 
         // Debug
         $this->log_debug( ($account_created['status']) ? '[SUCCESS] Account creation for ' . $account_code : '[ERROR]: Account creation failed for' . $account_code );
 
         $this->log_debug( print_r($submission_data, 1) );
+
+        // Update billing info
+        $billing_updated = $recurly->update_billing_info( $billing_info );
 
         if ( $account_created['status'] ) {
 
