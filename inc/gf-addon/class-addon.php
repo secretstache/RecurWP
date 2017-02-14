@@ -303,6 +303,23 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     }
 
     /**
+     * Get payment choices
+     *
+     * @since  1.0.0
+     * @access public
+     *
+     * @return array An array of payment choices
+     */
+    public function get_payment_choices( $form ) {
+        $fields  = GFAPI::get_fields_by_type( $form, array( 'product' ) );
+        $choices = array(
+            array( 'label' => esc_html__( 'Select a product field', 'recurwp' ), 'value' => '' ),
+        );
+
+        return $choices;
+    }
+
+    /**
      * Provides choices (Recurly Plans) for Recurring Amount
      *
      * @since  1.0.0
@@ -331,6 +348,14 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         return $recurring_choices;
     }
 
+    /**
+     * Get amount column value
+     *
+     * @since  1.0.0
+     * @access public
+     *
+     * @return string Plan price
+     */
     public function get_column_value_amount( $feed ) {
         // Instantiate RecurWP
         $recurly   = new RecurWP_Recurly();
