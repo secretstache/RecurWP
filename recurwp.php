@@ -77,4 +77,4 @@ function recurwp_gfaddon() {
     return RecurWP_GF_Recurly::get_instance();
 }
 // $r = new RecurWP_Recurly();
-// print_r($r->get_plans());
+// print_r($r->get_plan_price('esstentials-monthly'));

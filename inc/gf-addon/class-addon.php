@@ -308,6 +308,17 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         return $recurring_choices;
     }
 
+    public function get_column_value_amount( $feed ) {
+        // Instantiate RecurWP
+        $recurly   = new RecurWP_Recurly();
+        $form      = $this->get_current_form();
+        $plan_code = $feed['meta']['transactionType'] == 'subscription' ? rgars( $feed, 'meta/recurringAmount' ) : '';
+        $plan_price_cents = $recurly->get_plan_price($plan_code);
+
+
+        return $recurly->cents_to_dollars($plan_price_cents, true);
+    }
+
     // /**
     //  * Prevent feeds being listed or created if the API keys aren't valid.
     //  *

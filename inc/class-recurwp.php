@@ -101,11 +101,10 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          */
         public function cents_to_dollars( $cents, $prefix = false ) {
             if ( ! $prefix ) {
-
                 return number_format( ($cents / 100) , 2, '.', ',');
             } else {
-
-                return money_format('$%i', ($cents / 100));
+                setlocale(LC_MONETARY, 'en_US');
+                return money_format('%.2n', ($cents / 100));
             }
         }
 
@@ -217,6 +216,30 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                 }
             } catch (Recurly_ValidationError $e) {
                 print "Plans not found: $e";
+            }
+        }
+
+        /**
+         * Get Recurly plan price
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @param string $plan_code   Recurly Plan Code
+         *
+         * @return int    The plan price
+         */
+        public function get_plan_price($plan_code) {
+            if ($plan_code) {
+                try {
+                    // Get plan object
+                    $plan = Recurly_Plan::get($plan_code);
+                    $unit_amount_in_cents = $plan->unit_amount_in_cents['USD'];
+                    return $unit_amount_in_cents->amount_in_cents;
+
+                } catch (Recurly_ValidationError $e) {
+                    print "Plan amount not found: $e";
+                }
             }
         }
 
