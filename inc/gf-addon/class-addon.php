@@ -238,17 +238,40 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
      */
     public function feed_settings_fields() {
 
-        // Get default payment feed settings fields.
-        $default_settings = parent::feed_settings_fields();
+        return array(
 
-        // Remove the fields we don't need
-        $default_settings = $this->remove_field( 'recurringTimes', $default_settings );
-        $default_settings = $this->remove_field( 'trial', $default_settings );
-        $default_settings = $this->remove_field( 'setupFee', $default_settings );
-        $default_settings = $this->remove_field( 'billingCycle', $default_settings );
+            array(
+                'description' => '',
+                'fields'      => array(
+                    array(
+                        'name'     => 'feedName',
+                        'label'    => esc_html__( 'Name', 'gravityforms' ),
+                        'type'     => 'text',
+                        'class'    => 'medium',
+                        'required' => true,
+                        'tooltip'  => '<h6>' . esc_html__( 'Name', 'gravityforms' ) . '</h6>' . esc_html__( 'Enter a feed name to uniquely identify this setup.', 'gravityforms' )
+                    )
+                )
+            ),
+            array(
+                'title'      => 'Subscription Settings',
+                'fields'     => array(
+                    array(
+                        'name'     => 'recurringAmount',
+                        'label'    => esc_html__( 'Recurring Amount', 'gravityforms' ),
+                        'type'     => 'select',
+                        'choices'  => $this->recurring_amount_choices(),
+                        'required' => true,
+                        'tooltip'  => '<h6>' . esc_html__( 'Recurring Amount', 'gravityforms' ) . '</h6>' . esc_html__( "Select which field determines the recurring payment amount, or select 'Form Total' to use the total of all pricing fields as the recurring amount.", 'gravityforms' )
+                    )
+                )
+            ),
+            array(
+                'title'      => esc_html__( 'Other Settings', 'gravityforms' ),
+                'fields'     => parent::other_settings_fields()
+            ),
 
-        return $default_settings;
-
+        );
     }
 
     /**
