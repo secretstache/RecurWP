@@ -254,11 +254,11 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 )
             ),
             array(
-                'title'      => 'Subscription Settings',
+                'title'      => 'Recurly Settings',
                 'fields'     => array(
                     array(
                         'name'     => 'recurringAmount',
-                        'label'    => esc_html__( 'Recurring Amount', 'gravityforms' ),
+                        'label'    => esc_html__( 'Subscription Plan', 'gravityforms' ),
                         'type'     => 'select',
                         'choices'  => $this->recurring_amount_choices(),
                         'required' => true,
@@ -313,7 +313,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     public function get_payment_choices( $form ) {
         $fields  = GFAPI::get_fields_by_type( $form, array( 'product' ) );
         $choices = array(
-            array( 'label' => esc_html__( 'Select a product field', 'recurwp' ), 'value' => '' ),
+            array( 'label' => esc_html__( 'Select a Subscription Plan', 'recurwp' ), 'value' => '' ),
         );
 
         return $choices;
@@ -362,9 +362,12 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $form      = $this->get_current_form();
         $plan_code = $feed['meta']['transactionType'] == 'subscription' ? rgars( $feed, 'meta/recurringAmount' ) : '';
         $plan_price_cents = $recurly->get_plan_price($plan_code);
+        $plan_price = $recurly->cents_to_dollars($plan_price_cents, true);
+        $plan_name = $recurly->get_plan_name($plan_code);
 
+        $plan_description = $plan_name . ' - $' . $plan_price;
 
-        return $recurly->cents_to_dollars($plan_price_cents, true);
+        return $plan_description;
     }
 
     // /**
@@ -599,7 +602,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
             'email'             => $submission_data['email'],
             'first_name'        => $submission_data['firstName'],
             'last_name'         => $submission_data['lastName'],
-            'username'          => ($submission_data['username']) ? $submission_data['username'] : $submission_data['email'],
+            'username'          => $submission_data['username'],
             'company_name'      => $submission_data['company'],
             // 'address'           => array(
             //     'address1'          => $submission_data['address'],

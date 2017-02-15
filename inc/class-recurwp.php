@@ -270,6 +270,30 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         }
 
         /**
+         * Get Recurly plan name
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @param string $plan_code   Recurly Plan Code
+         *
+         * @return string    The plan name
+         */
+        public function get_plan_name($plan_code) {
+            if ($plan_code) {
+                try {
+                    // Get plan object
+                    $plan = Recurly_Plan::get($plan_code);
+                    $plan_name = $plan->name;
+                    return $plan_name;
+
+                } catch (Recurly_ValidationError $e) {
+                    print "Plan name not found: $e";
+                }
+            }
+        }
+
+        /**
          * Maybe create recurly account
          *
          * Checks if a user account exists on recurly, creates one if it doesn't exist.
