@@ -69,10 +69,11 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          *
          * @return array
          */
-        public function send_response( $status = true, $error = '' ) {
+        public function send_response( $is_success = true, $message = '', $meta = array() ) {
             $response = array(
-                'status' => $status,
-                'error' => $error
+                'is_success' => $is_success,
+                'message' => $message,
+                'meta'    => $meta
             );
             return $response;
         }
@@ -343,9 +344,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          * @return bool
          */
         public function create_subscription( $account_code, $plan_code, $currency = 'USD' ) {
-
             try {
-
                 $subscription = new Recurly_Subscription();
                 $subscription->plan_code = $plan_code;
                 $subscription->currency = $currency;
@@ -353,16 +352,23 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                 $subscription->account = $account;
                 $subscription->create();
 
-                // return true
-                return self::send_response();
-
+                // Success
+                return self::send_response(true, '', $subscription );
             } catch (Recurly_ValidationError $e) {
 
+                // Failed
                 return self::send_response(false, $e);
             } catch (Recurly_NotFoundError $e) {
 
+                // Failed
                 return self::send_response(false, "Account not found.\n");
             }
+        }
+
+
+        public function get_subscription($uuid) {
+            $subscription = Recurly_Subscription::get($uuid);
+            return $subscription;
         }
     }
 }

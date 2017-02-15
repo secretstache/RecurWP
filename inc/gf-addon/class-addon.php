@@ -584,128 +584,108 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         // Instantiate Recurly
         $recurly = new RecurWP_Recurly();
 
-        // Billing Info
-        $account_info1 = array(
-            array(
-                'name' => 'account_code',
-                'value' => $submission_data['email']
-            ),
-            array(
-                'name' => 'first_name',
-                'value' => $submission_data['firstName']
-            ),
-            array(
-                'name' => 'last_name',
-                'value' => $submission_data['lastName']
-            ),
-            array(
-                'name' => 'address1',
-                'value' => $submission_data['address']
-            ),
-            array(
-                'name' => 'address2',
-                'value' => $submission_data['address2']
-            ),
-            array(
-                'name' => 'city',
-                'value' => $submission_data['city']
-            ),
-            array(
-                'name' => 'state',
-                'value' => $submission_data['state']
-            ),
-            array(
-                'name' => 'zip',
-                'value' => $submission_data['zip']
-            ),
-            array(
-                'name' => 'country',
-                'value' => $submission_data['country']
-            ),
-            array(
-                'name' => 'number',
-                'value' => '4111-1111-1111-1111' // 4111111111111111
-            ),
-            array(
-                'name' => 'month',
-                'value' => $submission_data['card_expiration_date'][0]
-            ),
-            array(
-                'name' => 'year',
-                'value' => $submission_data['card_expiration_date'][1]
-            )
-        );
+        // Hold our data for response, we'll set these later in the process
+        $is_success = false;
+        $error_message = '';
+        $subscription_id = '';
+        $amount = '';
 
+        /**
+         * 1. Create/update Recurly Account
+         */
+        // Account info for account creation
         $account_info = array(
             'account_code'      => $submission_data['email'],
             'email'             => $submission_data['email'],
             'first_name'        => $submission_data['firstName'],
-            'last_name'         => $submission_data['lastName']
-        );
-
-        $billing_info = array(
-            'account_code'      => $submission_data['email'],
-            'first_name'        => $submission_data['firstName'],
             'last_name'         => $submission_data['lastName'],
-            'number'            => '4111-1111-1111-1111',
-            'verification_value'=> '123',
-            'month'             => $submission_data['card_expiration_date'][0],
-            'year'              => $submission_data['card_expiration_date'][1],
-            'address1'          => $submission_data['address'],
-            'address2'          => $submission_data['address2'],
-            'city'              => $submission_data['city'],
-            'state'             => $submission_data['state'],
-            'country'           => $submission_data['country'],
-            'zip'               => $submission_data['zip']
+            'username'          => ($submission_data['username']) ? $submission_data['username'] : $submission_data['email'],
+            'company_name'      => $submission_data['company'],
+            // 'address'           => array(
+            //     'address1'          => $submission_data['address'],
+            //     'address2'          => $submission_data['address2'],
+            //     'city'              => $submission_data['city'],
+            //     'state'             => $submission_data['state'],
+            //     'country'           => $submission_data['country'],
+            //     'zip'               => $submission_data['zip']
+            // )
         );
-        $account_code = $submission_data['email'];
-        $plan_code = $feed['meta']['recurringAmount'];
-
-        // TEMP
-        $this->log_debug(print_r($account_info, 1));
+        $account_code           = $submission_data['email'];
 
         // Create user account
         $account_created = $recurly->maybe_create_account( $account_code, $account_info );
 
-        // Debug
-        $this->log_debug( ($account_created['status']) ? '[SUCCESS] Account creation for ' . $account_code : '[ERROR]: Account creation failed for' . $account_code );
+        /**
+         * 2. Add/Update billing info if account created
+         */
+        if ( $account_created['is_success'] ) {
+            $this->log_debug( __METHOD__ . "(): Recurly account creation SUCCESSFUL for account_code {$account_code}" );
 
-        $this->log_debug( print_r($submission_data, 1) );
-
-        // Update billing info
-        $billing_updated = $recurly->update_billing_info( $billing_info );
-
-        if ( $account_created['status'] ) {
-
-            // TEMP
-            $this->log_debug('Tried to create subscription');
+            // Billing info array
+            $billing_info = array(
+                'account_code'      => $submission_data['email'],
+                'first_name'        => $submission_data['firstName'],
+                'last_name'         => $submission_data['lastName'],
+                'number'            => '4111-1111-1111-1111',
+                'verification_value'=> '123',
+                'month'             => $submission_data['card_expiration_date'][0],
+                'year'              => $submission_data['card_expiration_date'][1],
+                'phone'             => $submission_data['phone'],
+                'address1'          => $submission_data['address'],
+                'address2'          => $submission_data['address2'],
+                'city'              => $submission_data['city'],
+                'state'             => $submission_data['state'],
+                'country'           => $submission_data['country'],
+                'zip'               => $submission_data['zip']
+            );
 
             // Update billing info
             $billing_updated = $recurly->update_billing_info( $billing_info );
 
-            // TEMP
-            $this->log_debug(print_r($billing_updated, 1));
+            /**
+             * 3. Create Subscription
+             */
+            if ( $billing_updated['is_success'] ) {
+                $this->log_debug( __METHOD__ . "(): Billing info updation SUCCESSFUL for account_code {$account_code}" );
 
-            if ( $billing_updated['status'] ) {
+                // Get the plan code from feed meta
+                $plan_code = $feed['meta']['recurringAmount'];
 
                 // Create subscription
                 $subscription_created = $recurly->create_subscription( $account_code, $plan_code );
 
-                // TEMP
-                $this->log_debug(print_r($subscription_created, 1));
+                if ( $subscription_created['is_success'] ) {
 
+                    // We did it!
+                    $is_success = true;
+
+                    // Get the price of the plan subscribed
+                    $plan_price_cents = $subscription_created['meta']->unit_amount_in_cents;
+                    $plan_price = $plan_price_cents / 100;
+                    $amount = (int)$plan_price;
+
+                    // Subscription ID
+                    $subscription_id = $subscription_created['meta']->uuid;
+                } else {
+
+                    // Subscription failed
+                    $error_message = 'Unable to charge the provided credit card.';
+                }
+            } else {
+                $this->log_debug( __METHOD__ . "(): Billing info updation FAILED for {$account_code}: {$account_code}. {$account_created['message']}" );
+                $error_message = 'Unable to update Billing Information.';
             }
         } else {
-            // TEMP
-            $this->log_debug('Didn\'t try create subscription');
+            $this->log_debug( __METHOD__ . "(): Recurly account creation FAILED for account_code: {$account_code}.  {$account_created['message']}" );
+            $error_message = 'Unable to create account.';
         }
 
         // Return data
         return array(
-            'is_success'      => true,
-            'subscription_id' => $plan_code,
-            'customer_id'     => $account_code,
-            'amount'          => '40',
+            'is_success'      => $is_success,
+            'error_message'   => $error_message,
+            'subscription_id' => $subscription_id,
+            'amount'          => $amount,
         );
     }
 
