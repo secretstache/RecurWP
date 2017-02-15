@@ -76,5 +76,4 @@ class RecurWP_Bootstrap {
 function recurwp_gfaddon() {
     return RecurWP_GF_Recurly::get_instance();
 }
-// $r = new RecurWP_Recurly();
-// $s = $r->get_subscription('3bb026422a7d8d16d37ff340618408bb');
+$r = new RecurWP_Recurly();

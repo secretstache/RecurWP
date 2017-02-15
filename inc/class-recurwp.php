@@ -110,6 +110,31 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         }
 
         /**
+         * Add hyphens to credit card number for Recurly
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @return string
+         */
+        public function format_cc_number($cc) {
+
+            // Get the credit card length
+            $cc_length = strlen($cc);
+            $newCreditCard = substr($cc, -4);
+            for ($i = $cc_length - 5; $i >= 0; $i--) {
+
+                // Add hyphens
+                if ((($i + 1) - $cc_length) % 4 == 0) {
+                    $newCreditCard = '-' . $newCreditCard;
+                }
+                $newCreditCard = $cc[$i] . $newCreditCard;
+            }
+
+            return $newCreditCard;
+        }
+
+        /**
          * Retrieves RecurWP Gravity Form options
          *
          * @since  1.0.0

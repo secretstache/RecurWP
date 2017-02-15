@@ -626,8 +626,8 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 'account_code'      => $submission_data['email'],
                 'first_name'        => $submission_data['firstName'],
                 'last_name'         => $submission_data['lastName'],
-                'number'            => '4111-1111-1111-1111',
-                'verification_value'=> '123',
+                'number'            => $recurly->format_cc_number($submission_data['card_number']),
+                'verification_value'=> $submission_data['card_security_code'],
                 'month'             => $submission_data['card_expiration_date'][0],
                 'year'              => $submission_data['card_expiration_date'][1],
                 'phone'             => $submission_data['phone'],
@@ -666,18 +666,20 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
 
                     // Subscription ID
                     $subscription_id = $subscription_created['meta']->uuid;
+                    $this->log_debug( __METHOD__ . "(): Subscription creation SUCCESSFUL for account_code: {$account_code}  {$subscription_created['message']}" );
                 } else {
 
                     // Subscription failed
-                    $error_message = 'Unable to charge the provided credit card.';
+                    $error_message = "Unable to charge the provided credit card.";
+                    $this->log_debug( __METHOD__ . "(): Subscription creation FAILED for account_code: {$account_code}  {$subscription_created['message']}" );
                 }
             } else {
-                $this->log_debug( __METHOD__ . "(): Billing info updation FAILED for {$account_code}: {$account_code}. {$account_created['message']}" );
-                $error_message = 'Unable to update Billing Information.';
+                $this->log_debug( __METHOD__ . "(): Billing info updation FAILED for account_code: {$account_code}  {$account_created['message']}" );
+                $error_message = "Unable to update Billing Information.";
             }
         } else {
-            $this->log_debug( __METHOD__ . "(): Recurly account creation FAILED for account_code: {$account_code}.  {$account_created['message']}" );
-            $error_message = 'Unable to create account.';
+            $this->log_debug( __METHOD__ . "(): Recurly account creation FAILED for account_code: {$account_code}  {$account_created['message']}" );
+            $error_message = "Unable to create account.";
         }
 
         // Return data
