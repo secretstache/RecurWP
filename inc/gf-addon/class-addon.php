@@ -166,6 +166,16 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     }
 
     /**
+     * Include the field early so it is available when entry exports are being performed.
+     */
+    public function pre_init() {
+        parent::pre_init();
+        if ( $this->is_gravityforms_supported() && class_exists( 'GF_Field' ) ) {
+            require_once( 'includes/class-simple-gf-field.php' );
+        }
+    }
+
+    /**
      * Handles hooks and loading of language files.
      */
     public function init() {

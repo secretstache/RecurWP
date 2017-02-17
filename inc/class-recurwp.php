@@ -5,6 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+
 if ( ! class_exists( 'RecurWP_Recurly' ) ) {
     /**
      * Recurly Helper Class
