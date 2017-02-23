@@ -76,4 +76,37 @@ class RecurWP_Bootstrap {
 function recurwp_gfaddon() {
     return RecurWP_GF_Recurly::get_instance();
 }
-$r = new RecurWP_Recurly();
+
+/**
+ * Recurly Coupon Field settings
+ */
+function recurwp_recurly_coupon_field_settings( $position, $form_id ) {
+
+    //create settings on position 25 (right after Field Label)
+    if ( $position == 25 ) {
+        $recurwp = new RecurWP_Recurly();
+        $coupons = $recurwp->get_coupons();
+        ?>
+        <li class="recurly_coupon_setting field_setting">
+            <label for="field_admin_label">
+                <?php esc_html_e( 'Recurly Coupon', 'recurwp' ); ?>
+                <?php gform_tooltip( 'form_field_encrypt_value' ) ?>
+            </label>
+            <select id="field_description_placement">
+                <option value="">Choose...</option>
+                <?php foreach( $coupons as $coupon ) { 
+                    // if coupon is redeemable
+                    if( $coupon->state == 'redeemable' ) { ?>
+                        <option value="<?php echo $coupon->coupon_code;?>"><?php echo $coupon->coupon_code;?></option>
+                        <?php 
+                    }
+                } ?>
+            </select>
+        </li>
+        <?php
+    }
+}
+add_action( 'gform_field_standard_settings', 'recurwp_recurly_coupon_field_settings', 10, 2 );
+
+// $r = new RecurWP_Recurly();
+// print_r($r->calculate_coupon_discount(20, 'save70'));

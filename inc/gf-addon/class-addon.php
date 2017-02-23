@@ -183,7 +183,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         add_filter( 'gform_submit_button', array( $this, 'form_submit_button' ), 10, 2 );
     }
 
-
     // # SCRIPTS & STYLES -----------------------------------------------------------------------------------------------
 
     /**
@@ -211,6 +210,9 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 'enqueue'   => array(
                     array( $this, 'frontend_script_callback' ),
                 ),
+                'strings'   => array(
+                    'ajaxurl'       => admin_url( 'admin-ajax.php' )
+                )
             ),
             array(
                 'handle'    => 'recurwp_backend',

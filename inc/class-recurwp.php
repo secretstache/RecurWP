@@ -5,7 +5,6 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-
 if ( ! class_exists( 'RecurWP_Recurly' ) ) {
     /**
      * Recurly Helper Class
@@ -24,20 +23,13 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
             Recurly_Client::$subdomain = $sub_domain;
             Recurly_Client::$apiKey = $api_key;
 
+            // Instantiate Recurly Client
             new Recurly_Client();
 
+            // Ajax action for coupon discount calculation
+            add_action( 'wp_ajax_get_total_after_coupon', array($this, 'ajax_apply_coupon') );
+            add_action( 'wp_ajax_nopriv_get_total_after_coupon', array($this, 'ajax_apply_coupon') );
         }
-        /**
-         * Fields which can be added/updated for a Recurly Account
-         *
-         * @since  1.0.0
-         * @access protected
-         */
-        protected static $account_writeable_attributes = array(
-          'account_code', 'username', 'first_name', 'last_name', 'vat_number',
-          'email', 'company_name', 'accept_language', 'billing_info', 'address',
-          'tax_exempt', 'entity_use_code', 'cc_emails', 'shipping_addresses'
-        );
 
         /**
          * Initializes Recurly API
@@ -72,9 +64,9 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          */
         public function send_response( $is_success = true, $message = '', $meta = array() ) {
             $response = array(
-                'is_success' => $is_success,
-                'message' => $message,
-                'meta'    => $meta
+                'is_success'    => $is_success,
+                'message'       => $message,
+                'meta'          => $meta
             );
             return $response;
         }
@@ -247,6 +239,27 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         }
 
         /**
+         * Get Recurly Coupons
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @return array    All recurly coupons
+         */
+        public function get_coupons() {
+            $data = array();
+            try {
+                $coupons = Recurly_CouponList::get();
+                foreach ($coupons as $coupon) {
+                    array_push($data, $coupon);
+                }
+                return $data;
+            } catch (Recurly_ValidationError $e) {
+                print "No coupons found: $e";
+            }
+        }
+
+        /**
          * Get Recurly plan price
          *
          * @since  1.0.0
@@ -415,10 +428,74 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
             }
         }
 
+        /**
+         * Calculate Coupon Discount
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @param int       $total      The current total
+         * @param string    $coupon     Recurly coupon code
+         *
+         * @return int      The updated price
+         */
+        public function calculate_coupon_discount($total, $coupon) {
+            try {
+                // Hold our new price
+                $new_total = '';
 
-        public function get_subscription($uuid) {
-            $subscription = Recurly_Subscription::get($uuid);
-            return $subscription;
+                // Get coupon object
+                $coupon = Recurly_Coupon::get( $coupon );
+                $discount_type = $coupon->discount_type;
+
+                if ($discount_type == 'percent') {
+                    $discount_percent = (int) $coupon->discount_percent;
+
+                    // Total provided minus discount %
+                    $new_total = (int) $total * ((100-$discount_percent) / 100);
+                } elseif ($discount_type == 'dollars') {
+                    $discount_cents = $coupon->discount_in_cents;
+                    $discount_dollars = $discount_cents;
+                    $new_total = $total - $discount_dollars;
+                }
+                return (int) $new_total;
+            } catch (Recurly_NotFoundError $e) {
+                print "Coupon does not exist";
+            }
+        }
+
+        /**
+         * Ajax apply coupon
+         *
+         * @since  1.0.0
+         * @access public
+         *
+         * @return void 
+         */
+        public function ajax_apply_coupon() {
+            if ( isset($_REQUEST) ) {
+                $coupon_code    = $_REQUEST['couponCode'];
+                $form_id        = $_REQUEST['formId'];
+                $total          = $_REQUEST['total'];
+
+                // Hold our data
+                $response = array(
+                    'newPrice'  => ''
+                );
+                // Make sure coupon not empty
+                if ( empty( $coupon_code ) ) {
+                    die( json_encode( self::send_response(false, 'Please provide a coupon code.' ) ) );
+                }
+
+                $new_price = $this->calculate_coupon_discount($total, $coupon_code);
+
+                if (is_int($new_price)) {
+                    $response['newPrice'] = $new_price;
+                    die( json_encode( self::send_response(true, '', $response) ) ); 
+                } else {
+                    die( json_encode( self::send_response(false, 'Coupon code not valid.') ) ); 
+                }
+            }
         }
     }
 }

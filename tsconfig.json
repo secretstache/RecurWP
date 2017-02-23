@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "noImplicitAny": true,
+        "sourceMap": false,
+        "watch": true,
+        "out": "js/frontend.js"
+    },
+    "compileOnSave": true
+}
