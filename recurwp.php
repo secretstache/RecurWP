@@ -109,4 +109,4 @@ function recurwp_recurly_coupon_field_settings( $position, $form_id ) {
 add_action( 'gform_field_standard_settings', 'recurwp_recurly_coupon_field_settings', 10, 2 );
 
 // $r = new RecurWP_Recurly();
-// print_r($r->calculate_coupon_discount(20, 'save70'));
+// print_r($r->calculate_coupon_discount('20', 'save70'));

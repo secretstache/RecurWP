@@ -1,3 +1,10 @@
+// Declare global modules
+declare var jQuery: any;
+declare var gform: any;
+
+/** 
+ * Apply Coupon 
+ */
 function recurwpApplyCoupon(formId) {
 
     // Get coupon code
@@ -6,51 +13,80 @@ function recurwpApplyCoupon(formId) {
         return;
     }
 
+    console.log(typeof couponCode);
 
     // Show spinner and disable apply btn
     jQuery('#recurwp_coupon_container_' + formId + ' #recurwp_coupon_spinner').show();
-    jQuery('#recurwp_coupon_container_' + formId + ' #recurwpDisableApplyBtn').prop('disabled', true);
+    recurwpDisableApplyButton(formId);
 
-
+    // Ajax post coupon code to recurly API
     jQuery.ajax({
         method: 'POST',
         url: recurwp_frontend_strings.ajaxurl,
         data: {
-            'action':'get_total_after_coupon',
-            'couponCode': couponCode,
-            'total': jQuery('#recurwp_total_no_discount_' + formId).val(),
-            'formId': formId
-
+            'action':       'get_total_after_coupon',
+            'couponCode':   couponCode,
+            'total':        parseInt(jQuery('#recurwp_total_no_discount_' + formId).val()),
+            'formId':       formId
         }
-    }).done(function(response) {
+    }).done(function(response: string) {
         console.log(response);
         var _response = JSON.parse(response);
 
         // if successful
         if (_response.is_success) {
+            
+            var newPrice = _response.meta.newPrice;
 
             // update price
-            gform.addFilter('gform_product_total', function (total, formId) {
-                return _response.meta.newPrice;
-            });
-            gformCalculateTotalPrice(formId);
+            window['new_total_' + formId] = newPrice;
+            recurwpUpdateTotal(newPrice, formId);
+        } else {
 
-            jQuery('#recurwp_coupon_container_' + formId + ' #recurwp_coupon_spinner').hide();
-            window['new_total_' + formId] = _response.meta.newPrice;
+        // Enable coupon button
+        jQuery('#recurwp_coupon_container_' + formId + ' #recurwp_coupon_spinner').hide();
         }
     });
 }
 
-function DisableApplyButton(formId) {
-    var is_disabled = window['new_total_' + formId] == 0 || jQuery('#recurwp_coupon_code_' + formId).val() == '';
+/**
+ * Disable apply button
+ */
+function recurwpDisableApplyButton( formId ) {
+
+    // Disabled if a new price already exists
+    var is_disabled = window['new_total_' + formId] == 0;
 
     if (is_disabled) {
-        jQuery('#recurwp_coupon_container_' + formId + ' #recurwpDisableApplyBtn').prop('disabled', true);
+        jQuery('#recurwp_coupon_container_' + formId + ' #recurwpCouponApply').prop('disabled', true);
     } else {
-        jQuery('#recurwp_coupon_container_' + formId + ' #recurwpDisableApplyBtn').prop('disabled', false);
+        jQuery('#recurwp_coupon_container_' + formId + ' #recurwpCouponApply').prop('disabled', false);
     }
 }
 
+/** 
+ * Disable apply button
+ */
+// function recurwpDisableApplyButton(formId) {
+//     var is_disabled = window['new_total_' + formId] == 0 || jQuery('#recurwp_coupon_code_' + formId).val() == '';
+
+//     if (is_disabled) {
+//         jQuery('#recurwp_coupon_container_' + formId + ' #recurwpDisableApplyBtn').prop('disabled', true);
+//     } else {
+//         jQuery('#recurwp_coupon_container_' + formId + ' #recurwpDisableApplyBtn').prop('disabled', false);
+//     }
+// }
+
+/** 
+ * Update form total
+ */
+function recurwpUpdateTotal(newTotal: Number, formId) {
+    gform.addFilter('gform_product_total', function (total, formId) {
+        return newTotal;
+    });
+    window['new_total_' + formId] = newTotal;
+    gformCalculateTotalPrice(formId);
+}
 
 gform.addFilter('gform_product_total', function (total, formId) {
     // Ignore forms that don't have a coupon field.

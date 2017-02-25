@@ -141,8 +141,8 @@ class RecurWP_Coupon_GF_Field extends GF_Field {
         $coupon_codes          = empty( $coupons_detail ) ? '' : rgpost( "input_{$id}" );
 
        $input = "<div class='ginput_container' id='recurwp_coupon_container_{$form_id}'>" .
-		         "<input id='recurwp_coupon_code_{$form_id}' class='recurwp_coupon_code' onkeyup='DisableApplyButton({$form_id});' onchange='DisableApplyButton({$form_id});' onpaste='setTimeout(function(){DisableApplyButton({$form_id});}, 50);' type='text'  {$disabled_text} {$placeholder_attribute} " . $this->get_tabindex() . '/>' .
-		         "<input type='button' disabled='disabled' onclick='recurwpApplyCoupon({$form_id});' value='" . esc_attr__( 'Apply', 'gravityformscoupons' ) . "' id='recurwpDisableApplyBtn' class='button' {$disabled_text} " . $this->get_tabindex() . '/> ' .
+		         "<input id='recurwp_coupon_code_{$form_id}' class='recurwp_coupon_code' onkeyup='recurwpDisableApplyButton({$form_id});' onchange='recurwpDisableApplyButton({$form_id});' onpaste='setTimeout(function(){recurwpDisableApplyButton({$form_id});}, 50);' type='text'  {$disabled_text} {$placeholder_attribute} " . $this->get_tabindex() . '/>' .
+		         "<input type='button' disabled='disabled' onclick='recurwpApplyCoupon({$form_id});' value='" . esc_attr__( 'Apply', 'gravityformscoupons' ) . "' id='recurwpCouponApply' class='button' {$disabled_text} " . $this->get_tabindex() . '/> ' .
 		         "<img style='display:none;' id='recurwp_coupon_spinner' src='" . GFCommon::get_base_url() . "/images/spinner.gif' alt='" . esc_attr__( 'please wait', 'gravityformscoupons' ) . "'/>" .
 		         "<div id='gf_coupon_info'></div>" .
 		         "<input type='hidden' id='recurwp_coupon_codes_{$form_id}' name='input_{$id}' value='" . esc_attr( $coupon_codes ) . "' {$logic_event} />" .

@@ -458,9 +458,9 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                     $discount_dollars = $discount_cents;
                     $new_total = $total - $discount_dollars;
                 }
-                return (int) $new_total;
+                return self::send_response(true, '', $new_total );
             } catch (Recurly_NotFoundError $e) {
-                print "Coupon does not exist";
+                return self::send_response(false, "Coupon does not exist");
             }
         }
 
@@ -488,12 +488,17 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                 }
 
                 $new_price = $this->calculate_coupon_discount($total, $coupon_code);
-
-                if (is_int($new_price)) {
-                    $response['newPrice'] = $new_price;
+                $meta = array(
+                    'coupon_code'   => $coupon_code,
+                    'form_id'       => $form_id, 
+                    'total'         => $total,
+                    'newPrice'      => $new_price
+                );
+                if ($new_price['is_success']) {
+                    $response['newPrice'] = $new_price['meta'];
                     die( json_encode( self::send_response(true, '', $response) ) ); 
                 } else {
-                    die( json_encode( self::send_response(false, 'Coupon code not valid.') ) ); 
+                    die( json_encode( self::send_response(false, $meta ) ) ); 
                 }
             }
         }
