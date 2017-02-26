@@ -1,0 +1,32 @@
+
+.recurwp_coupon_container .recurwp_coupon_error {
+    display: none;
+
+    background-color: #FFEBE8;
+    color: #790000;
+    padding: 5px;
+    line-height: 1em !important;
+    width: auto;
+    margin-top: 5px;
+    border-radius: 3px;
+}
+.recurwp_coupon_container .recurwp_coupon_error.isVisible {
+    display: inline-block;
+}
+
+.recurwp_coupon_table {
+    min-width: 300px;
+    width: auto;
+    margin-top: 5px;
+}
+.recurwp_coupon_remove {
+    display: inline-block;
+    color: #790000;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+}

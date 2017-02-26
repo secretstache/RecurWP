@@ -108,5 +108,37 @@ function recurwp_recurly_coupon_field_settings( $position, $form_id ) {
 }
 add_action( 'gform_field_standard_settings', 'recurwp_recurly_coupon_field_settings', 10, 2 );
 
+
+/**
+ * Ajax apply coupon
+ *
+ * @return void 
+ */
+function recurwp_ajax_apply_coupon() {
+    if ( isset($_REQUEST) ) {
+        $coupon_code    = $_REQUEST['couponCode'];
+        $form_id        = $_REQUEST['formId'];
+        $total          = $_REQUEST['total'];
+
+        // Make sure coupon not empty
+        if ( empty( $coupon_code ) ) {
+            die( json_encode( $recurly->send_response(false, 'Please provide a coupon code.' ) ) );
+        }
+        $recurly = new RecurWP_Recurly();
+        $new_price = $recurly->apply_coupon($total, $coupon_code);
+
+        if ($new_price['is_success']) {
+            $response = $new_price['meta'];
+            die( json_encode( $recurly->send_response(true, '', $response) ) ); 
+        } else {
+            die( json_encode( $recurly->send_response(false, 'Coupon not found.' ) ) ); 
+        }
+    }
+}
+// Ajax action for coupon discount calculation
+add_action( 'wp_ajax_get_total_after_coupon', 'recurwp_ajax_apply_coupon');
+add_action( 'wp_ajax_nopriv_get_total_after_coupon', 'recurwp_ajax_apply_coupon' );
+
+
 // $r = new RecurWP_Recurly();
 // print_r($r->calculate_coupon_discount('20', 'save70'));

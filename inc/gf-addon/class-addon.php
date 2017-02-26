@@ -237,6 +237,21 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         return array_merge( parent::scripts(), $scripts );
     }
 
+    public function styles() {
+        $styles = array(
+            array(  
+                "handle"    => "recurwp_css",
+                "src"       => RECURWP_URL . "/css/recurwp.css",
+                "version"   => GFCommon::$version,
+                "enqueue"   => array(
+                    array( $this),
+                )
+            )
+        );
+
+        return array_merge( parent::styles(), $styles );
+    }
+
 
     // # FEED SETTINGS -------------------------------------------------------------------------------------------------
 
