@@ -171,7 +171,8 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     public function pre_init() {
         parent::pre_init();
         if ( $this->is_gravityforms_supported() && class_exists( 'GF_Field' ) ) {
-            require_once( 'includes/class-simple-gf-field.php' );
+            require_once( 'includes/class-recurwp-gf-field-coupon.php' );
+            require_once( 'includes/class-recurwp-gf-field-product.php' );
         }
     }
 
@@ -181,6 +182,13 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     public function init() {
         parent::init();
         add_filter( 'gform_submit_button', array( $this, 'form_submit_button' ), 10, 2 );
+    }
+
+    public function init_admin() {
+        parent::init_admin();
+
+        add_action( 'gform_field_standard_settings', array( $this, 'recurwp_gf_field_product_settings' ), 10, 2 );
+        add_action( 'gform_field_standard_settings', array( $this, 'recurwp_recurly_coupon_field_settings' ), 10, 2 );
     }
 
     // # SCRIPTS & STYLES -----------------------------------------------------------------------------------------------
@@ -251,6 +259,65 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
 
         return array_merge( parent::styles(), $styles );
     }
+
+    // # CUSTOM FIELDS -----------------------------------------------------------------------------------------------
+    /**
+     * Recurly Coupon Field settings
+     */
+    function recurwp_gf_field_product_settings( $position, $form_id ) {
+
+        //create settings on position 25 (right after Field Label)
+        if ( $position == 25 ) {
+            $recurwp = new RecurWP_Recurly();
+            $_plans = $recurwp->get_plans();
+            $plans = $_plans['meta']
+            ?>
+            <li class="recurly_product_setting field_setting">
+                <label for="field_admin_label">
+                    <?php esc_html_e( 'Recurly Plan', 'recurwp' ); ?>
+                </label>
+                <select id="field_description_placement">
+                    <option value="">Choose...</option>
+                    <?php foreach( $plans as $plan ) { ?>
+                        <option value="<?php echo $plan->plan_plan_code;?>"><?php echo $plan->name;?></option>
+                        <?php 
+                    } ?>
+                </select>
+            </li>
+            <?php
+        }
+    }
+
+    /**
+     * Recurly Coupon Field settings
+     */
+    function recurwp_recurly_coupon_field_settings( $position, $form_id ) {
+
+        //create settings on position 25 (right after Field Label)
+        if ( $position == 25 ) {
+            $recurwp = new RecurWP_Recurly();
+            $coupons = $recurwp->get_coupons();
+            ?>
+            <li class="recurly_coupon_setting field_setting">
+                <label for="field_admin_label">
+                    <?php esc_html_e( 'Recurly Coupon', 'recurwp' ); ?>
+                    <?php gform_tooltip( 'form_field_encrypt_value' ) ?>
+                </label>
+                <select id="recurwp_field_active_coupon"  onchange="SetFieldProperty('recurwpFieldActiveCoupon', this.value);">
+                    <option value="">Choose...</option>
+                    <?php foreach( $coupons as $coupon ) { 
+                        // if coupon is redeemable
+                        if( $coupon->state == 'redeemable' ) { ?>
+                            <option value="<?php echo $coupon->coupon_code;?>"><?php echo $coupon->coupon_code;?></option>
+                            <?php 
+                        }
+                    } ?>
+                </select>
+            </li>
+            <?php
+        }
+    }
+
 
 
     // # FEED SETTINGS -------------------------------------------------------------------------------------------------

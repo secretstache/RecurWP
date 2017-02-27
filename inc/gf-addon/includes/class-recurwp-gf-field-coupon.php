@@ -4,7 +4,7 @@ if ( ! class_exists( 'GFForms' ) ) {
     die();
 }
 
-class RecurWP_Coupon_GF_Field extends GF_Field {
+class RecurWP_GF_Field_Coupon extends GF_Field {
 
     /**
      * @var string $type The field type.
@@ -156,4 +156,4 @@ class RecurWP_Coupon_GF_Field extends GF_Field {
     }
 }
 
-GF_Fields::register( new RecurWP_Coupon_GF_Field() );
+GF_Fields::register( new RecurWP_GF_Field_Coupon() );

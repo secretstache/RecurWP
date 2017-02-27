@@ -1,11 +1,54 @@
+/**
+ * RECURWP PRODUCT FIELD
+ */
+var RecurWPProductField = (function () {
+    function RecurWPProductField(formId) {
+        this.formId = formId;
+        var _this = this;
+        jQuery(document).ready(function () {
+            var instances = _this.getInstances();
+            jQuery('#gform_' + _this.formId + ' :input').on('change', function (e) {
+                e.stopPropagation();
+                var visible_instance = _this.getVisibleInstance(instances);
+                var current_total = _this.getInstanceValue(visible_instance);
+                console.log(current_total);
+            });
+        });
+    }
+    RecurWPProductField.prototype.getInstances = function () {
+        var i = document.querySelectorAll('.recurwp_product_container');
+        return i;
+    };
+    RecurWPProductField.prototype.getVisibleInstance = function (instances) {
+        for (var _i = 0, instances_1 = instances; _i < instances_1.length; _i++) {
+            var i = instances_1[_i];
+            if (i.offsetParent != null) {
+                return i;
+            }
+        }
+    };
+    RecurWPProductField.prototype.getInstanceValue = function (instance) {
+        //var input = instance.getElementById('recurwp_product_plan_price_' + this.formId);
+        return instance.childNodes[0].value;
+    };
+    return RecurWPProductField;
+}());
 var RecurWP = (function () {
-    function RecurWP() {
+    function RecurWP(formId) {
+        this.formId = formId;
+        console.log(this.formId);
         // Set default price
         gform.addFilter('gform_product_total', function (total, formId) {
             jQuery('#recurwp_total_no_discount_' + formId).val(total);
             return total;
         }, 50);
+        var productField = new RecurWPProductField();
+        // Get all product fields
+        new RecurWPProductField(this.formId);
     }
+    /**
+     * RECURWP COUPON FIELD
+     */
     RecurWP.prototype.applyCoupon = function (formId) {
         var _this = this;
         // Get coupon code
@@ -132,4 +175,4 @@ var RecurWP = (function () {
     };
     return RecurWP;
 }());
-var recurwp = new RecurWP();
+var recurwp = new RecurWP(2);

@@ -209,30 +209,42 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          * @return array    All recurly plans
          */
         public function get_plans() {
-
+            $plans = array();
             try {
-                // Instantiate recurly client
-                $recurly_client = self::recurly_client();
-
-                // Get plans
-                $plans = $recurly_client->request('GET', '/plans');
-
-                // Test successful connection
-                if ($plans->statusCode == '200') {
-
-                    $plans_xml = $plans->body;
-
-                    // Quicky dirty way to convert XML to php array
-                    // TODO: Improve
-                    $plans = json_decode( json_encode( (array) simplexml_load_string( $plans_xml ) ), 1);
-
-                    return $plans['plan'];
-
+                $_plans = Recurly_PlanList::get();
+                foreach ($_plans as $plan) {
+                    array_push($plans, $plan);
                 }
+                return self::send_response(true, '', $plans );
             } catch (Recurly_ValidationError $e) {
-                print "Plans not found: $e";
+                print "No coupons found: $e";
             }
         }
+        // public function get_plans() {
+
+        //     try {
+        //         // Instantiate recurly client
+        //         $recurly_client = self::recurly_client();
+
+        //         // Get plans
+        //         $plans = $recurly_client->request('GET', '/plans');
+
+        //         // Test successful connection
+        //         if ($plans->statusCode == '200') {
+
+        //             $plans_xml = $plans->body;
+
+        //             // Quicky dirty way to convert XML to php array
+        //             // TODO: Improve
+        //             $plans = json_decode( json_encode( (array) simplexml_load_string( $plans_xml ) ), 1);
+
+        //             return $plans['plan'];
+
+        //         }
+        //     } catch (Recurly_ValidationError $e) {
+        //         print "Plans not found: $e";
+        //     }
+        // }
 
         /**
          * Get Recurly Coupons
