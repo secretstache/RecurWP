@@ -187,6 +187,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     public function init_admin() {
         parent::init_admin();
 
+        add_action( 'gform_editor_js', array( $this, 'editor_script'));
         add_action( 'gform_field_standard_settings', array( $this, 'recurwp_gf_field_product_settings' ), 10, 2 );
         add_action( 'gform_field_standard_settings', array( $this, 'recurwp_recurly_coupon_field_settings' ), 10, 2 );
     }
@@ -276,10 +277,10 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 <label for="field_admin_label">
                     <?php esc_html_e( 'Recurly Plan', 'recurwp' ); ?>
                 </label>
-                <select id="field_description_placement">
+                <select id="recurwp_field_plan" onchange="SetFieldProperty('recurwpFieldPlan', this.value);">
                     <option value="">Choose...</option>
                     <?php foreach( $plans as $plan ) { ?>
-                        <option value="<?php echo $plan->plan_plan_code;?>"><?php echo $plan->name;?></option>
+                        <option value="<?php echo $plan->plan_code;?>"><?php echo $plan->name;?></option>
                         <?php 
                     } ?>
                 </select>
@@ -303,7 +304,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                     <?php esc_html_e( 'Recurly Coupon', 'recurwp' ); ?>
                     <?php gform_tooltip( 'form_field_encrypt_value' ) ?>
                 </label>
-                <select id="recurwp_field_active_coupon"  onchange="SetFieldProperty('recurwpFieldActiveCoupon', this.value);">
+                <select id="recurwp_field_active_coupon" onchange="SetFieldProperty('recurwpFieldActiveCoupon', this.value);">
                     <option value="">Choose...</option>
                     <?php foreach( $coupons as $coupon ) { 
                         // if coupon is redeemable
@@ -316,6 +317,21 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
             </li>
             <?php
         }
+    }
+    
+    function editor_script(){
+        ?>
+        <script type='text/javascript'>
+            jQuery(document).bind('gform_load_field_settings', function(event, field, form){
+                // Coupon field value
+                jQuery('#recurwp_field_active_coupon').val(field.recurwpFieldActiveCoupon);
+                
+                // Plan field value  
+                jQuery('#recurwp_field_plan').val(field.recurwpFieldPlan);
+            });
+
+        </script>
+        <?php
     }
 
 

@@ -6,29 +6,53 @@ declare var gform: any;
  * RECURWP PRODUCT FIELD
  */
 class RecurWPProductField {
-
+    
     public formId: number;
     
     constructor(formId: number) {
 
+        // Define form ID
         this.formId = formId;
+
+        // Because, jQuery
         let _this = this;
         
         jQuery( document ).ready(function() {
-            let instances = _this.getInstances();
+            let instances = _this.getInstances('.recurwp_product_container');
             jQuery('#gform_'+_this.formId+' :input').on('change', function(e) {
                 e.stopPropagation();
                 var visible_instance = _this.getVisibleInstance( instances );
-                var current_total = _this.getInstanceValue(visible_instance);
-                console.log(current_total);
+                if (visible_instance) {
+                    var current_total = _this.getInstanceValue(visible_instance);
+                    _this.updateTotal(current_total);
+                } else {
+                    _this.updateTotal(0);
+                }
+                
             });
         });
     }
-    public getInstances() {
-        let i = document.querySelectorAll('.recurwp_product_container');
+
+    /**
+     * Get all instances of a selector
+     * 
+     * @param   {string}    selector
+     */
+    public getInstances(selector: string) {
+        let i = document.querySelectorAll(selector);
         return i;
     }
 
+    /**
+     * Get the visible instance
+     * 
+     * RecurWP treats the first visible instance as the selected
+     * plan.
+     * 
+     * @param   {array} instances   All instances of a selector
+     * 
+     * @since v1.0
+     */
     public getVisibleInstance(instances:any) {
         for (let i of instances) {
             if (i.offsetParent != null) {
@@ -37,9 +61,24 @@ class RecurWPProductField {
         }
     }
 
-    public getInstanceValue(instance) {
+    /**
+     * Get the value (plan_code) of an instance 
+     */
+    public getInstanceValue(instance:any) {
         //var input = instance.getElementById('recurwp_product_plan_price_' + this.formId);
         return instance.childNodes[0].value;
+    }
+
+    /** 
+     * Update form total
+     */
+    public updateTotal(newTotal: Number) {
+        window.recurwpTotal = newTotal;
+        gform.addFilter('gform_product_total', function (total, this.formId) {
+            return newTotal;
+        });
+        window['new_total_' + this.formId] = newTotal;
+        gformCalculateTotalPrice(this.formId);
     }
 }
 class RecurWP {
@@ -49,7 +88,6 @@ class RecurWP {
     constructor(formId) {
 
         this.formId = formId;
-        console.log(this.formId);
 
         // Set default price
         gform.addFilter('gform_product_total', function (total, formId) {
@@ -57,10 +95,8 @@ class RecurWP {
             return total;
         }, 50);
 
-        var productField = new RecurWPProductField();
+        var currentTotal = new RecurWPProductField(this.formId);
 
-        // Get all product fields
-        new RecurWPProductField(this.formId);
     }
 
     
@@ -93,7 +129,7 @@ class RecurWP {
         // Show spinner and disable apply btn
         this.couponSpinner(formId);
         this.couponFieldsDisable(formId);
-
+        
         // Ajax post coupon code to recurly API
         jQuery.ajax({
             method: 'POST',
@@ -101,16 +137,15 @@ class RecurWP {
             data: {
                 'action':       'get_total_after_coupon',
                 'couponCode':   safeCouponCode,
-                'total':        parseInt(jQuery('#recurwp_total_no_discount_' + formId).val()),
+                //'total':        parseInt(jQuery('#recurwp_total_no_discount_' + formId).val()),
+                total:          _this.getTotal(formId),
                 'formId':       formId
             }
         }).done(function(response: string) {
-            console.log(response);
             var _response = JSON.parse(response);
 
             // if successful
             if (_response.is_success) {
-                console.log(_response.meta);
                 var newPrice = _response.meta.new_total,
                 discountValue = _response.meta.discount_value;
 
@@ -205,10 +240,15 @@ class RecurWP {
         }
     }
 
+    public getTotal(formId) {
+        return window.recurwpTotal;
+    }
+
     /** 
      * Update form total
      */
     public updateTotal(formId, newTotal: Number) {
+        window.recurwpTotal = newTotal;
         gform.addFilter('gform_product_total', function (total, formId) {
             return newTotal;
         });

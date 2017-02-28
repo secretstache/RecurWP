@@ -97,7 +97,14 @@ class RecurWP_GF_Field_Product extends GF_Field {
         $form_id         = $form['id'];
         $is_entry_detail = $this->is_entry_detail();
         $id              = (int) $this->id;
+        $fields          = $form['fields'];
+        $field_obj;
 
+        foreach($fields as $field) {
+            if ($field['id'] == $id) {
+                $field_obj = $field;
+            }
+        }
         if ( $is_entry_detail ) {
             $input = "<input type='hidden' id='input_{$id}' name='input_{$id}' value='{$value}' />";
 
@@ -107,16 +114,21 @@ class RecurWP_GF_Field_Product extends GF_Field {
         $disabled_text         = $this->is_form_editor() ? 'disabled="disabled"' : '';
         $logic_event           = $this->get_conditional_logic_event( 'change' );
         $plan_price            = 199;
+        $tabindex = $this->get_tabindex();
 
         // Instantiate RecurWP
-        // $recurly               = new RecurWP_Recurly();
-        // $plan_price_cents      = $recurly->get_plan_price($plan_code);
-        // $plan_price            = $recurly->cents_to_dollars($plan_price_cents, true);
+        if ($field_obj) {
+            $recurly               = new RecurWP_Recurly();
+            $plan_code             = $field_obj['recurwpFieldPlan'];
+            $plan_price_cents      = $recurly->get_plan_price($plan_code);
+            $plan_price            = $recurly->cents_to_dollars($plan_price_cents);
+        }
 
-       $input = "<div class='ginput_container recurwp_product_container' id='recurwp_product_container_{$form_id}'>" .
-		         "<input id='recurwp_product_plan_price_{$form_id}' type='hidden' value='{$value}'>" .
+       $input = "<div class='ginput_container recurwp_product_container' id='recurwp_product_container_{$form_id}' data-recurwp-id='{$id}'>" . 
+		         "<input id='recurwp_product_plan_price_{$form_id}' type='hidden' value='{$plan_price}'>" .
 		         "</div>";
-
+        // print_r($form['fields']);
+        // print_r($id);
         return $input;
 
     }

@@ -3,22 +3,44 @@
  */
 var RecurWPProductField = (function () {
     function RecurWPProductField(formId) {
+        // Define form ID
         this.formId = formId;
+        // Because, jQuery
         var _this = this;
         jQuery(document).ready(function () {
-            var instances = _this.getInstances();
+            var instances = _this.getInstances('.recurwp_product_container');
             jQuery('#gform_' + _this.formId + ' :input').on('change', function (e) {
                 e.stopPropagation();
                 var visible_instance = _this.getVisibleInstance(instances);
-                var current_total = _this.getInstanceValue(visible_instance);
-                console.log(current_total);
+                if (visible_instance) {
+                    var current_total = _this.getInstanceValue(visible_instance);
+                    _this.updateTotal(current_total);
+                }
+                else {
+                    _this.updateTotal(0);
+                }
             });
         });
     }
-    RecurWPProductField.prototype.getInstances = function () {
-        var i = document.querySelectorAll('.recurwp_product_container');
+    /**
+     * Get all instances of a selector
+     *
+     * @param   {string}    selector
+     */
+    RecurWPProductField.prototype.getInstances = function (selector) {
+        var i = document.querySelectorAll(selector);
         return i;
     };
+    /**
+     * Get the visible instance
+     *
+     * RecurWP treats the first visible instance as the selected
+     * plan.
+     *
+     * @param   {array} instances   All instances of a selector
+     *
+     * @since v1.0
+     */
     RecurWPProductField.prototype.getVisibleInstance = function (instances) {
         for (var _i = 0, instances_1 = instances; _i < instances_1.length; _i++) {
             var i = instances_1[_i];
@@ -27,24 +49,35 @@ var RecurWPProductField = (function () {
             }
         }
     };
+    /**
+     * Get the value (plan_code) of an instance
+     */
     RecurWPProductField.prototype.getInstanceValue = function (instance) {
         //var input = instance.getElementById('recurwp_product_plan_price_' + this.formId);
         return instance.childNodes[0].value;
+    };
+    /**
+     * Update form total
+     */
+    RecurWPProductField.prototype.updateTotal = function (newTotal) {
+        window.recurwpTotal = newTotal;
+        gform.addFilter('gform_product_total', function (total, formId) {
+            return newTotal;
+        });
+        window['new_total_' + this.formId] = newTotal;
+        gformCalculateTotalPrice(this.formId);
     };
     return RecurWPProductField;
 }());
 var RecurWP = (function () {
     function RecurWP(formId) {
         this.formId = formId;
-        console.log(this.formId);
         // Set default price
         gform.addFilter('gform_product_total', function (total, formId) {
             jQuery('#recurwp_total_no_discount_' + formId).val(total);
             return total;
         }, 50);
-        var productField = new RecurWPProductField();
-        // Get all product fields
-        new RecurWPProductField(this.formId);
+        var currentTotal = new RecurWPProductField(this.formId);
     }
     /**
      * RECURWP COUPON FIELD
@@ -74,15 +107,14 @@ var RecurWP = (function () {
             data: {
                 'action': 'get_total_after_coupon',
                 'couponCode': safeCouponCode,
-                'total': parseInt(jQuery('#recurwp_total_no_discount_' + formId).val()),
+                //'total':        parseInt(jQuery('#recurwp_total_no_discount_' + formId).val()),
+                total: _this.getTotal(formId),
                 'formId': formId
             }
         }).done(function (response) {
-            console.log(response);
             var _response = JSON.parse(response);
             // if successful
             if (_response.is_success) {
-                console.log(_response.meta);
                 var newPrice = _response.meta.new_total, discountValue = _response.meta.discount_value;
                 // update price
                 _this.updateTotal(formId, newPrice);
@@ -163,10 +195,14 @@ var RecurWP = (function () {
             this.couponFieldsDisable(formId, 'enable');
         }
     };
+    RecurWP.prototype.getTotal = function (formId) {
+        return window.recurwpTotal;
+    };
     /**
      * Update form total
      */
     RecurWP.prototype.updateTotal = function (formId, newTotal) {
+        window.recurwpTotal = newTotal;
         gform.addFilter('gform_product_total', function (total, formId) {
             return newTotal;
         });
