@@ -626,13 +626,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                         'feedback_callback' => array( $this, 'is_valid_recurly_key' ),
                     ),
                     array(
-                        'name'              => 'recurly_public_key',
-                        'tooltip'           => esc_html__( '', 'recurwp' ),
-                        'label'             => esc_html__( 'Recurly API Public Key', 'recurwp' ),
-                        'type'              => 'text',
-                        'class'             => 'small'
-                    ),
-                    array(
                         'label'           => esc_html__( 'Is Recurly Validated?', 'recurwp' ),
                         'type'            => 'hidden',
                         'name'            => 'recurly_info_validated',
