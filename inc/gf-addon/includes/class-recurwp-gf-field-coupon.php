@@ -47,6 +47,7 @@ class RecurWP_GF_Field_Coupon extends GF_Field {
             'description_setting',
             'placeholder_setting',
             'visibility_setting',
+            'prepopulate_field_setting',
             'rules_setting',
             'error_message_setting',
         );
@@ -93,36 +94,6 @@ class RecurWP_GF_Field_Coupon extends GF_Field {
      * @return string
      */
     public function get_field_input( $form, $value = '', $entry = null ) {
-        // $id              = absint( $this->id );
-        // $form_id         = absint( $form['id'] );
-        // $is_entry_detail = $this->is_entry_detail();
-        // $is_form_editor  = $this->is_form_editor();
-
-        // // Prepare the value of the input ID attribute.
-        // $field_id = $is_entry_detail || $is_form_editor || $form_id == 0 ? "input_$id" : 'input_' . $form_id . "_$id";
-
-        // $value = esc_attr( $value );
-
-        // // Get the value of the inputClass property for the current field.
-        // $inputClass = $this->inputClass;
-
-        // // Prepare the input classes.
-        // $size         = $this->size;
-        // $class_suffix = $is_entry_detail ? '_admin' : '';
-        // $class        = $size . $class_suffix . ' ' . $inputClass;
-
-        // // Prepare the other input attributes.
-        // $tabindex              = $this->get_tabindex();
-        // $logic_event           = ! $is_form_editor && ! $is_entry_detail ? $this->get_conditional_logic_event( 'keyup' ) : '';
-        // $placeholder_attribute = $this->get_field_placeholder_attribute();
-        // $required_attribute    = $this->isRequired ? 'aria-required="true"' : '';
-        // $invalid_attribute     = $this->failed_validation ? 'aria-invalid="true"' : 'aria-invalid="false"';
-        // $disabled_text         = $is_form_editor ? 'disabled="disabled"' : '';
-
-        // // Prepare the input tag for this field.
-        // $input = "<input name='input_{$id}' id='{$field_id}' type='text' value='{$value}' class='{$class}' {$tabindex} {$logic_event} {$placeholder_attribute} {$required_attribute} {$invalid_attribute} {$disabled_text}/>";
-
-        // return sprintf( "<div class='ginput_container ginput_container_%s'>%s</div>", $this->type, $input );
 
         $form_id         = $form['id'];
         $is_entry_detail = $this->is_entry_detail();
@@ -141,7 +112,7 @@ class RecurWP_GF_Field_Coupon extends GF_Field {
         $coupon_codes          = empty( $coupons_detail ) ? '' : rgpost( "input_{$id}" );
 
        $input = "<div class='ginput_container recurwp_coupon_container' id='recurwp_coupon_container_{$form_id}'>" .
-		         "<input id='recurwp_coupon_code_{$form_id}' class='recurwp_coupon_code' type='text' {$disabled_text} {$placeholder_attribute} " . $this->get_tabindex() . '/>' .
+		         "<input id='recurwp_coupon_code_{$form_id}' class='recurwp_coupon_code' type='text' {$disabled_text} {$placeholder_attribute} " . $this->get_tabindex() . ' value='.$value.'>' .
 		         "<input type='button' onclick='recurwp.applyCoupon({$form_id});' value='" . esc_attr__( 'Apply', 'gravityformscoupons' ) . "' id='recurwpCouponApply' class='button' {$disabled_text} " . $this->get_tabindex() . '/> ' .
 		         "<img style='display:none;' id='recurwp_coupon_spinner' src='" . GFCommon::get_base_url() . "/images/spinner.gif' alt='" . esc_attr__( 'please wait', 'gravityformscoupons' ) . "'/>" .
 		         "<div id='recurwp_coupon_info' class='recurwp_coupon_info'></div>" .
