@@ -427,14 +427,16 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         $recurly = new RecurWP_Recurly();
 
         $form                = $this->get_current_form();
-        $recurly_plans       = $recurly->get_plans();
+        $_plans              = $recurly->get_plans();
+        $plans               = $_plans['meta'];
         $recurring_choices   = $this->get_payment_choices( $form );
-        foreach ($recurly_plans as $plan) {
-            $name      = $plan['name'];
-            $code      = $plan['plan_code'];
-            $price     =  $recurly->cents_to_dollars($plan['unit_amount_in_cents']['USD']);
+        foreach ($plans as $plan) {
+            $name      = $plan->name;
+            $code      = $plan->plan_code;
+            //$price     =  $recurly->cents_to_dollars($plan['unit_amount_in_cents']['USD']);
             $recurring_choices[] = array(
-                'label' => $name . ' - $' . $price,
+                //'label' => $name . ' - $' . $price,
+                'label' => $name,
                 'value' => $code
             );
         }
