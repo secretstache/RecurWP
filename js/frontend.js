@@ -246,7 +246,6 @@ var RecurWPFieldProduct = (function () {
 }());
 var RecurWP = (function () {
     function RecurWP(formId) {
-        alert('works');
         this.formId = formId;
         var _this = this;
         var totalField = new RecurWPTotal(this.formId);
@@ -257,4 +256,4 @@ var RecurWP = (function () {
     };
     return RecurWP;
 }());
-var recurwp = new RecurWP(7);
+var recurwp = new RecurWP(formId);
