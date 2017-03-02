@@ -320,13 +320,17 @@ class RecurWPFieldProduct extends RecurWPField {
      * Initialize
      */
     public init() {
-        let visibleInstance = this.getVisibleInstance();
-        if (visibleInstance) {
-            var currentTotal = this.getInstanceValue(visibleInstance);
-            this.total.set(currentTotal);
-        } else {
-            this.total.set(0);
-        }
+        let __this = this;
+        jQuery(document).ready(function() {
+            let visibleInstance = __this.getVisibleInstance();
+            if (visibleInstance) {
+                var currentTotal = __this.getInstanceValue(visibleInstance);
+                __this.total.set(currentTotal);
+            } else {
+                __this.total.set(0);
+            }
+        })
+        
     }
 
     /**

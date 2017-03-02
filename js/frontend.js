@@ -270,14 +270,17 @@ var RecurWPFieldProduct = (function (_super) {
      * Initialize
      */
     RecurWPFieldProduct.prototype.init = function () {
-        var visibleInstance = this.getVisibleInstance();
-        if (visibleInstance) {
-            var currentTotal = this.getInstanceValue(visibleInstance);
-            this.total.set(currentTotal);
-        }
-        else {
-            this.total.set(0);
-        }
+        var __this = this;
+        jQuery(document).ready(function () {
+            var visibleInstance = __this.getVisibleInstance();
+            if (visibleInstance) {
+                var currentTotal = __this.getInstanceValue(visibleInstance);
+                __this.total.set(currentTotal);
+            }
+            else {
+                __this.total.set(0);
+            }
+        });
     };
     /**
      * Get all instances of a selector
