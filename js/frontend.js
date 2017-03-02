@@ -1,8 +1,16 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+/**
+ * RecurWPField class
+ */
 var RecurWPField = (function () {
     /**
      * Constructor
@@ -10,10 +18,10 @@ var RecurWPField = (function () {
      * @param   {number}    formId
      */
     function RecurWPField(formId) {
-        /**
-         * Define form ID
-         */
+        /** Define form ID */
         this.formId = formId;
+        /** Instantiate RecurWPTotal */
+        this.total = new RecurWPTotal(this.formId);
     }
     return RecurWPField;
 }());
@@ -27,35 +35,44 @@ var RecurWPTotal = (function () {
      * @param   {number}    formId
      */
     function RecurWPTotal(formId) {
-        /**
-         * Define form ID
-         */
         this.formId = formId;
         this.init();
     }
+    /**
+     * Initialize total field
+     */
     RecurWPTotal.prototype.init = function () {
-        var $totalEl = jQuery('.ginput_container_total input[type="hidden"]');
-        var totalVal = $totalEl.val();
-        /**
-         * Set total
-         */
-        //window.RecurWPTotal = (totalVal) ? totalVal : 0.00;
+        /** Set total */
         gform.addFilter('gform_product_total', function (total, formId) {
-            window.RecurWPTotal = total;
+            window.RecurWPTotalValue = total;
             return total;
         }, 50);
     };
+    /**
+     * Get Total
+     *
+     * @returns total {string}
+     */
     RecurWPTotal.prototype.get = function () {
-        return window.RecurWPTotal;
+        return window.RecurWPTotalValue;
     };
+    RecurWPTotal.prototype.getNumber = function () {
+        var _total = this.get();
+        var total = _total.split(",").join("");
+        return Number(total);
+    };
+    /**
+     * Set Total
+     *
+     * @param newTotal {number}
+     */
     RecurWPTotal.prototype.set = function (newTotal) {
-        /**
-         * Update total
-         */
-        window.RecurWPTotal = newTotal;
+        /** Update total */
         gform.addFilter('gform_product_total', function (total, formId) {
+            window.RecurWPTotalValue = newTotal;
             return newTotal;
         }, 50);
+        gformCalculateTotalPrice(this.formId);
     };
     return RecurWPTotal;
 }());
@@ -71,16 +88,22 @@ var RecurWPFieldCoupon = (function (_super) {
      */
     function RecurWPFieldCoupon(formId) {
         var _this = 
-        /**
-         * Parent class constructor
-         */
+        /** Parent class constructor */
         _super.call(this, formId) || this;
-        _this.total = new RecurWPTotal(_this.formId);
+        var __this = _this;
+        jQuery('#recurwp_coupon_container_' + _this.formId + ' #recurwpCouponApply').on('click', function () {
+            var couponCode = jQuery(this).siblings('input.recurwp_coupon_code').val();
+            __this.apply(couponCode);
+        });
+        jQuery(document).on('click', '#recurwp_coupon_container_' + _this.formId + ' #recurwpCouponRemove', function (e) {
+            e.preventDefault();
+            __this.remove();
+        });
         return _this;
     }
-    RecurWPFieldCoupon.prototype.applyCoupon = function (formId) {
-        var _this = this;
-        var couponCode = jQuery('#recurwp_coupon_code_' + formId).val();
+    RecurWPFieldCoupon.prototype.apply = function (couponCode) {
+        var __this = this;
+        //var couponCode = jQuery('#recurwp_coupon_code_' + formId).val();
         // Make sure coupon provided
         if (couponCode === 'undefined' || couponCode == '') {
             return;
@@ -92,17 +115,19 @@ var RecurWPFieldCoupon = (function (_super) {
         // Filter everything except alphanumeric, hyphen and underscore 
         var safeCouponCode = this.sanitize(couponCode);
         // Show spinner and disable apply btn
-        this.couponSpinner(this.formId);
-        this.couponFieldsDisable();
+        this.spinner();
+        this.disableFields();
+        // Store precoupon value 
+        window.RecurWPTotalValuePreCoupon = this.total.get();
         // Ajax post coupon code to recurly API
         jQuery.ajax({
             method: 'POST',
-            url: recurwp_frontend_strings.ajaxurl,
+            url: window.recurwp_frontend_strings.ajaxurl,
             data: {
                 'action': 'get_total_after_coupon',
                 'couponCode': safeCouponCode,
-                'total': this.total.get(),
-                'formId': this.formId
+                'total': __this.total.getNumber(),
+                'formId': __this.formId
             }
         }).done(function (response) {
             var _response = JSON.parse(response);
@@ -110,15 +135,29 @@ var RecurWPFieldCoupon = (function (_super) {
             if (_response.is_success) {
                 var newPrice = _response.meta.new_total, discountValue = _response.meta.discount_value;
                 // update price
-                this.total.set(newPrice);
-                _this.couponApplyResponse(true, couponCode, discountValue);
+                __this.total.set(newPrice);
+                __this.couponApplyResponse(true, couponCode, discountValue);
             }
             else {
                 // Failed
-                _this.couponApplyResponse();
+                __this.couponApplyResponse();
             }
-            _this.couponSpinner('hide');
+            __this.spinner('hide');
         });
+    };
+    RecurWPFieldCoupon.prototype.remove = function () {
+        var $couponInfo = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_info');
+        var preCouponTotal = window.RecurWPTotalValuePreCoupon;
+        // Show spinner
+        this.spinner();
+        // Enable fields
+        this.disableFields('enable');
+        // Empty coupon info
+        $couponInfo.empty();
+        // Reset form total
+        this.total.set(preCouponTotal);
+        // Hide spinner 
+        this.spinner('hide');
     };
     RecurWPFieldCoupon.prototype.sanitize = function (couponCode) {
         var safeCouponCode = couponCode.replace(/[^A-Za-z0-9_-]+/g, '');
@@ -127,7 +166,7 @@ var RecurWPFieldCoupon = (function (_super) {
     /**
      * Show/Hide the spinner
      */
-    RecurWPFieldCoupon.prototype.couponSpinner = function (state) {
+    RecurWPFieldCoupon.prototype.spinner = function (state) {
         if (state === void 0) { state = 'show'; }
         var $spinner = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_spinner');
         if (state == 'show') {
@@ -140,11 +179,9 @@ var RecurWPFieldCoupon = (function (_super) {
     /**
      * Enable/Disable apply button
      */
-    RecurWPFieldCoupon.prototype.couponFieldsDisable = function (state) {
+    RecurWPFieldCoupon.prototype.disableFields = function (state) {
         if (state === void 0) { state = 'disable'; }
         var $applyButton = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwpCouponApply'), $inputField = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_code_' + this.formId);
-        // Disabled if a new price already exists
-        //var is_disabled = window['new_total_' + this.formId] == 0;
         if (state == 'disable') {
             $applyButton.prop('disabled', true);
             $inputField.prop('disabled', true);
@@ -162,17 +199,17 @@ var RecurWPFieldCoupon = (function (_super) {
         var $couponError = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_error');
         // If correct coupon 
         if (isSuccessful) {
-            var couponDetails = "\n            <table class=\"recurwp_coupon_table\">\n                <tr>\n                    <td><a href=\"javascript:void(0);\" onclick=\"recurwp.removeCoupon(" + this.formId + ")\" class=\"recurwp_coupon_remove\" title=\"Remove Coupon\">x</a> " + couponCode + "</td>\n                    <td>" + discountValue + "</td>\n                </tr>\n            </table>\n            ";
+            var couponDetails = "\n            <table class=\"recurwp_coupon_table\">\n                <tr>\n                    <td><a href=\"#\" class=\"recurwp_coupon_remove\" id=\"recurwpCouponRemove\" title=\"Remove Coupon\">x</a> " + couponCode + "</td>\n                    <td>" + discountValue + "</td>\n                </tr>\n            </table>\n            ";
             $couponInfo.html(couponDetails);
             // Disable apply button
-            this.couponFieldsDisable();
+            this.disableFields();
         }
         else {
             $couponError.addClass('isVisible');
             setTimeout(function () {
                 $couponError.removeClass('isVisible');
             }, 3000);
-            this.couponFieldsDisable('enable');
+            this.disableFields('enable');
         }
     };
     return RecurWPFieldCoupon;
@@ -180,41 +217,53 @@ var RecurWPFieldCoupon = (function (_super) {
 /**
  * RECURWP PRODUCT FIELD
  */
-var RecurWPFieldProduct = (function () {
+var RecurWPFieldProduct = (function (_super) {
+    __extends(RecurWPFieldProduct, _super);
     /**
      * Constructor
      *
      * @param   {number}    formId
      */
     function RecurWPFieldProduct(formId) {
-        // Define form ID
-        this.formId = formId;
-        // Because, jQuery
-        var _this = this;
-        var total = new RecurWPTotal(this.formId);
+        var _this = 
+        /** Parent class constructor */
+        _super.call(this, formId) || this;
+        /** Scope thingy */
+        var __this = _this;
         jQuery(document).ready(function () {
-            var instances = _this.getInstances('.recurwp_product_container');
-            jQuery('#gform_' + _this.formId + ' :input').on('change', function (e) {
-                e.stopPropagation();
-                var visible_instance = _this.getVisibleInstance(instances);
-                console.log(visible_instance);
-                if (visible_instance) {
-                    var current_total = _this.getInstanceValue(visible_instance);
-                    total.set(current_total);
-                }
-                else {
-                    total.set(0);
-                }
+            __this.init();
+            jQuery('#gform_' + __this.formId)
+                .not('#gform_' + __this.formId + ' :input.gform_hidden')
+                .on('change', function (e) {
+                // e.preventDefault();
+                // e.stopPropagation();
+                __this.init();
             });
         });
+        return _this;
+        // Trigger form change event 
+        //jQuery('#gform_'+__this.formId+' :input').trigger('change');
     }
+    /**
+     * Initialize
+     */
+    RecurWPFieldProduct.prototype.init = function () {
+        var visibleInstance = this.getVisibleInstance();
+        if (visibleInstance) {
+            var currentTotal = this.getInstanceValue(visibleInstance);
+            this.total.set(currentTotal);
+        }
+        else {
+            this.total.set(0);
+        }
+    };
     /**
      * Get all instances of a selector
      *
      * @param   {string}    selector
      */
-    RecurWPFieldProduct.prototype.getInstances = function (selector) {
-        var i = document.querySelectorAll(selector);
+    RecurWPFieldProduct.prototype.getInstances = function () {
+        var i = document.querySelectorAll('.recurwp_product_container');
         return i;
     };
     /**
@@ -227,7 +276,8 @@ var RecurWPFieldProduct = (function () {
      *
      * @since v1.0
      */
-    RecurWPFieldProduct.prototype.getVisibleInstance = function (instances) {
+    RecurWPFieldProduct.prototype.getVisibleInstance = function () {
+        var instances = this.getInstances();
         for (var _i = 0, instances_1 = instances; _i < instances_1.length; _i++) {
             var i = instances_1[_i];
             if (i.offsetParent != null) {
@@ -239,21 +289,28 @@ var RecurWPFieldProduct = (function () {
      * Get the value (plan_code) of an instance
      */
     RecurWPFieldProduct.prototype.getInstanceValue = function (instance) {
-        //var input = instance.getElementById('recurwp_product_plan_price_' + this.formId);
-        return instance.childNodes[0].value;
+        var instanceChild = jQuery(instance).children('#recurwp_product_plan_price_' + this.formId);
+        return instanceChild.val();
     };
     return RecurWPFieldProduct;
-}());
+}(RecurWPField));
+/**
+ * RecurWP main class
+ */
 var RecurWP = (function () {
     function RecurWP(formId) {
         this.formId = formId;
-        var _this = this;
-        var totalField = new RecurWPTotal(this.formId);
-        this.coupon = new RecurWPFieldCoupon(this.formId);
-        var productField = new RecurWPFieldProduct(this.formId);
+        this.total = new RecurWPTotal(this.formId);
+        this.couponField = new RecurWPFieldCoupon(this.formId);
+        this.productField = new RecurWPFieldProduct(this.formId);
     }
-    RecurWP.prototype.applyCoupon = function (formId) {
-    };
     return RecurWP;
 }());
-var recurwp = new RecurWP(formId);
+jQuery(document).bind('gform_post_render', function (event, form_id) {
+    var recurwp = new RecurWP(form_id);
+    jQuery('#gform_7').on('change', function () {
+        // let instance = recurwp.productField.getVisibleInstance();
+        // console.log(instance);
+    });
+    recurwp.productField.init();
+});

@@ -4,8 +4,7 @@
         "target": "es5",
         "noImplicitAny": true,
         "sourceMap": false,
-        "watch": true,
-        "out": "js/frontend.js"
+        "watch": true
     },
     "compileOnSave": true
 }

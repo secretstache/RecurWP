@@ -113,7 +113,7 @@ class RecurWP_GF_Field_Coupon extends GF_Field {
         $value_class           = ($value ? 'has-value' : '');
        $input = "<div class='ginput_container recurwp_coupon_container {$value_class}' id='recurwp_coupon_container_{$form_id}'>" .
 		         "<input id='recurwp_coupon_code_{$form_id}' class='recurwp_coupon_code' type='text' {$disabled_text} {$placeholder_attribute} " . $this->get_tabindex() . ' value='.$value.'>' .
-		         "<input type='button' onclick='recurwp.coupon.applyCoupon({$form_id});' value='" . esc_attr__( 'Apply', 'gravityformscoupons' ) . "' id='recurwpCouponApply' class='button' {$disabled_text} " . $this->get_tabindex() . '/> ' .
+		         "<input type='button' data-form-id='{$form_id}' value='" . esc_attr__( 'Apply', 'gravityformscoupons' ) . "' id='recurwpCouponApply' class='button' {$disabled_text} " . $this->get_tabindex() . '/> ' .
 		         "<img style='display:none;' id='recurwp_coupon_spinner' src='" . GFCommon::get_base_url() . "/images/spinner.gif' alt='" . esc_attr__( 'please wait', 'gravityformscoupons' ) . "'/>" .
 		         "<div id='recurwp_coupon_info' class='recurwp_coupon_info'></div>" .
                  "<div id='recurwp_coupon_error' class='recurwp_coupon_error'><span>Invalid Coupon.</span></div>" .

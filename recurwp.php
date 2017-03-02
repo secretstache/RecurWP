@@ -90,12 +90,12 @@ function recurwp_ajax_apply_coupon() {
         $coupon_code    = $_REQUEST['couponCode'];
         $form_id        = $_REQUEST['formId'];
         $total          = $_REQUEST['total'];
-
+        $recurly = new RecurWP_Recurly();
         // Make sure coupon not empty
         if ( empty( $coupon_code ) ) {
             die( json_encode( $recurly->send_response(false, 'Please provide a coupon code.' ) ) );
         }
-        $recurly = new RecurWP_Recurly();
+        
         $new_price = $recurly->apply_coupon($total, $coupon_code);
 
         if ($new_price['is_success']) {

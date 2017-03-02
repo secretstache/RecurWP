@@ -1,12 +1,18 @@
 // Declare global modules
 declare var jQuery: any;
 declare var gform: any;
+declare var gformCalculateTotalPrice:any;
 
+/**
+ * RecurWPField class
+ */
 abstract class RecurWPField {
-    /**
-     * Gravity Form ID
-     */
+
+    /** * Gravity Form ID */
     public formId: number;
+
+    /** RecurWPTotal Instance */
+    public total:any;
 
     /**
      * Constructor 
@@ -14,64 +20,79 @@ abstract class RecurWPField {
      * @param   {number}    formId
      */
     constructor(formId: number) {
-        /**
-         * Define form ID
-         */
+        /** Define form ID */
         this.formId = formId;   
+
+        /** Instantiate RecurWPTotal */
+        this.total = new RecurWPTotal(this.formId);
     }
+}
+
+/**
+ * Window interface
+ */
+interface Window {
+    RecurWPTotalValue: string;
+    RecurWPTotalValuePreCoupon: string;
+    recurwp_frontend_strings: object;
 }
 
 /**
  * RecurWP Total 
  */
 class RecurWPTotal {
-    /**
-     * Gravity Form ID
-     */
-    public formId: number;
 
+    /** Gravity Form ID */
+    public formId: number;
+    
     /**
      * Constructor 
      * 
      * @param   {number}    formId
      */
     constructor(formId: number) {
-        /**
-         * Define form ID
-         */
         this.formId = formId;
-
         this.init();
     }
 
+    /**
+     * Initialize total field
+     */
     public init() {
-
-        let $totalEl = jQuery('.ginput_container_total input[type="hidden"]');
-        var totalVal = $totalEl.val();
-
-        /**
-         * Set total
-         */
-        //window.RecurWPTotal = (totalVal) ? totalVal : 0.00;
-        gform.addFilter('gform_product_total', function (total, formId) {
-            window.RecurWPTotal = total;
+        /** Set total */
+        gform.addFilter('gform_product_total', function (total:number, formId:number) {
+            window.RecurWPTotalValue = total;
             return total;
         }, 50);
     }
 
+    /**
+     * Get Total
+     * 
+     * @returns total {string}
+     */
     public get() {
-        return window.RecurWPTotal;
+        return window.RecurWPTotalValue;
     }
 
-    public set(newTotal: number) {
+    public getNumber() {
+        var _total = this.get();
+        var total = _total.split(",").join("");
+        return Number(total);
+    }
 
-        /**
-         * Update total
-         */
-        window.RecurWPTotal = newTotal;
-        gform.addFilter('gform_product_total', function (total, formId) {
+    /**
+     * Set Total
+     * 
+     * @param newTotal {number}
+     */
+    public set(newTotal: number) {
+        /** Update total */
+        gform.addFilter('gform_product_total', function (total:number, formId:number) {
+            window.RecurWPTotalValue = newTotal;
             return newTotal;
         }, 50);
+        gformCalculateTotalPrice(this.formId);
     }
 }
 
@@ -80,26 +101,35 @@ class RecurWPTotal {
  */
 class RecurWPFieldCoupon extends RecurWPField {
 
-    public total;
     /**
      * Constructor 
      * 
      * @param   {number}    formId
      */
     constructor(formId: number) {
-        /**
-         * Parent class constructor
-         */
+
+        /** Parent class constructor */
         super(formId);
 
-        this.total = new RecurWPTotal(this.formId);
+        let __this = this;
+        
+        jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwpCouponApply').on('click', function() {
+            let couponCode = jQuery(this).siblings('input.recurwp_coupon_code').val();
+            __this.apply(couponCode);
+        });
+
+        jQuery(document).on('click', '#recurwp_coupon_container_' + this.formId + ' #recurwpCouponRemove', function(e) {
+            e.preventDefault();
+            __this.remove();
+        })
+        
     }
 
-    public applyCoupon( formId: number ) {
+    public apply( couponCode:string ) {
 
-        let _this = this;
+        let __this = this;
 
-        var couponCode = jQuery('#recurwp_coupon_code_' + formId).val();
+        //var couponCode = jQuery('#recurwp_coupon_code_' + formId).val();
         // Make sure coupon provided
         if (couponCode === 'undefined' || couponCode == '') {
             return;
@@ -115,18 +145,21 @@ class RecurWPFieldCoupon extends RecurWPField {
         var safeCouponCode = this.sanitize(couponCode);
 
         // Show spinner and disable apply btn
-        this.couponSpinner(this.formId);
-        this.couponFieldsDisable();
+        this.spinner();
+        this.disableFields();
+        
+        // Store precoupon value 
+        window.RecurWPTotalValuePreCoupon = this.total.get();
         
         // Ajax post coupon code to recurly API
         jQuery.ajax({
             method: 'POST',
-            url: recurwp_frontend_strings.ajaxurl,
+            url: window.recurwp_frontend_strings.ajaxurl,
             data: {
                 'action':           'get_total_after_coupon',
                 'couponCode':       safeCouponCode,
-                'total':            this.total.get(),
-                'formId':           this.formId
+                'total':            __this.total.getNumber(),
+                'formId':           __this.formId
             }
         }).done(function(response: string) {
             var _response = JSON.parse(response);
@@ -137,18 +170,36 @@ class RecurWPFieldCoupon extends RecurWPField {
                 discountValue = _response.meta.discount_value;
 
                 // update price
-                this.total.set(newPrice);
-                _this.couponApplyResponse(true, couponCode, discountValue);
+                __this.total.set(newPrice);
+                __this.couponApplyResponse(true, couponCode, discountValue);
             } else {
                 // Failed
-                _this.couponApplyResponse();
+                __this.couponApplyResponse();
             }
-            _this.couponSpinner('hide');
+            __this.spinner('hide');
             
         });
     }
 
-    public sanitize(couponCode) {
+    public remove() {
+        var $couponInfo = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_info');
+        var preCouponTotal = window.RecurWPTotalValuePreCoupon;
+
+        // Show spinner
+        this.spinner();
+        // Enable fields
+        this.disableFields('enable');
+        // Empty coupon info
+        $couponInfo.empty();
+        // Reset form total
+        this.total.set(preCouponTotal);
+        // Hide spinner 
+        this.spinner('hide');
+    }
+
+
+
+    public sanitize(couponCode:string) {
         var safeCouponCode = couponCode.replace(/[^A-Za-z0-9_-]+/g, '');
         return safeCouponCode;
     }
@@ -156,7 +207,7 @@ class RecurWPFieldCoupon extends RecurWPField {
     /**
      * Show/Hide the spinner
      */
-    public couponSpinner( state:string = 'show' ) {
+    public spinner( state:string = 'show' ) {
         var $spinner = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_spinner');
         if (state == 'show') {
             $spinner.show();
@@ -168,12 +219,9 @@ class RecurWPFieldCoupon extends RecurWPField {
     /**
      * Enable/Disable apply button
      */
-    public couponFieldsDisable( state:string = 'disable' ) {
+    public disableFields( state:string = 'disable' ) {
         var $applyButton = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwpCouponApply'),
         $inputField = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_code_' + this.formId);
-
-        // Disabled if a new price already exists
-        //var is_disabled = window['new_total_' + this.formId] == 0;
 
         if (state == 'disable') {
             $applyButton.prop('disabled', true);
@@ -193,7 +241,7 @@ class RecurWPFieldCoupon extends RecurWPField {
             var couponDetails = `
             <table class="recurwp_coupon_table">
                 <tr>
-                    <td><a href="javascript:void(0);" onclick="recurwp.removeCoupon(`+this.formId+`)" class="recurwp_coupon_remove" title="Remove Coupon">x</a> `+couponCode+`</td>
+                    <td><a href="#" class="recurwp_coupon_remove" id="recurwpCouponRemove" title="Remove Coupon">x</a> `+couponCode+`</td>
                     <td>`+discountValue+`</td>
                 </tr>
             </table>
@@ -201,26 +249,22 @@ class RecurWPFieldCoupon extends RecurWPField {
             $couponInfo.html(couponDetails);
 
             // Disable apply button
-            this.couponFieldsDisable();
+            this.disableFields();
         } else {
             $couponError.addClass('isVisible');
             setTimeout(function(){
                 $couponError.removeClass('isVisible');
             },3000);
-            this.couponFieldsDisable('enable');
+            this.disableFields('enable');
         }
     }
 
 }
+
 /**
  * RECURWP PRODUCT FIELD
  */
-class RecurWPFieldProduct {
-    
-    /**
-     * Gravity Form ID
-     */
-    public formId: number;
+class RecurWPFieldProduct extends RecurWPField {
     
     /**
      * Constructor 
@@ -229,29 +273,38 @@ class RecurWPFieldProduct {
      */
     constructor(formId: number) {
 
-        // Define form ID
-        this.formId = formId;
+        /** Parent class constructor */
+        super(formId);
 
-        // Because, jQuery
-        let _this = this;
+        /** Scope thingy */
+        let __this = this;
 
-        var total = new RecurWPTotal(this.formId);
-        
         jQuery( document ).ready(function() {
-            let instances = _this.getInstances('.recurwp_product_container');
-            jQuery('#gform_'+_this.formId+' :input').on('change', function(e) {
-                e.stopPropagation();
-                var visible_instance = _this.getVisibleInstance( instances );
-                console.log(visible_instance);
-                if (visible_instance) {
-                    var current_total = _this.getInstanceValue(visible_instance);
-                    total.set(current_total);
-                } else {
-                    total.set(0);
-                }
-                
+            __this.init();
+            jQuery('#gform_'+__this.formId)
+                .not('#gform_'+__this.formId+' :input.gform_hidden')
+                .on('change', function(e:any) {
+                    // e.preventDefault();
+                    // e.stopPropagation();
+                    __this.init();
             });
         });
+
+        // Trigger form change event 
+        //jQuery('#gform_'+__this.formId+' :input').trigger('change');
+    }
+
+    /**
+     * Initialize
+     */
+    public init() {
+        let visibleInstance = this.getVisibleInstance();
+        if (visibleInstance) {
+            var currentTotal = this.getInstanceValue(visibleInstance);
+            this.total.set(currentTotal);
+        } else {
+            this.total.set(0);
+        }
     }
 
     /**
@@ -259,8 +312,8 @@ class RecurWPFieldProduct {
      * 
      * @param   {string}    selector
      */
-    public getInstances(selector: string) {
-        let i = document.querySelectorAll(selector);
+    public getInstances() {
+        let i:any = document.querySelectorAll('.recurwp_product_container');
         return i;
     }
 
@@ -274,7 +327,8 @@ class RecurWPFieldProduct {
      * 
      * @since v1.0
      */
-    public getVisibleInstance(instances:any) {
+    public getVisibleInstance() {
+        let instances = this.getInstances();
         for (let i of instances) {
             if (i.offsetParent != null) {
                 return i;
@@ -286,191 +340,42 @@ class RecurWPFieldProduct {
      * Get the value (plan_code) of an instance 
      */
     public getInstanceValue(instance:any) {
-        //var input = instance.getElementById('recurwp_product_plan_price_' + this.formId);
-        return instance.childNodes[0].value;
+        var instanceChild = jQuery(instance).children('#recurwp_product_plan_price_' + this.formId);
+        return instanceChild.val();
     }
 }
 
-
+/**
+ * RecurWP main class
+ */
 class RecurWP {
 
+    /** Form ID */
     public formId: number;
 
-    public coupon;
+    /** RecurWPTotal Instance */
+    public total:any;
+
+    /** RecurWPFieldCoupon Instance */
+    public couponField:any;
+
+    /** RecurWPFieldProduct Instance */
+    public productField:any;
 
     constructor(formId: number) {
-
-        this.formId = formId;
-
-        var _this = this;
-
-        var totalField = new RecurWPTotal(this.formId);
-
-        this.coupon = new RecurWPFieldCoupon(this.formId);
-
-        var productField = new RecurWPFieldProduct(this.formId);
+        this.formId         = formId;
+        this.total          = new RecurWPTotal(this.formId);
+        this.couponField    = new RecurWPFieldCoupon(this.formId);
+        this.productField   = new RecurWPFieldProduct(this.formId);
     }
-
-    public applyCoupon(formId) {
-        
-    }
-
-    
-
-    // /**
-    //  * RECURWP COUPON FIELD
-    //  */
-    // public applyCoupon(formId: any) {
-
-    //     let _this = this;
-
-    //     // Get coupon code
-    //     var couponCode = jQuery('#recurwp_coupon_code_' + formId).val();
-    //     if (couponCode === 'undefined' || couponCode == '') {
-    //         return;
-    //     }
-    //     console.log(couponCode);
-    //     var $applyButton = jQuery('#recurwp_coupon_container_' + formId + ' #recurwpCouponApply'),
-    //     $inputField = jQuery('#recurwp_coupon_container_' + formId + ' #recurwp_coupon_code_' + formId);
-    //     if ($applyButton.prop('disabled') || $inputField.prop('disabled') ) {
-    //         return;
-    //     }
-        
-    //     // Preseve pre discount coupon 
-    //     this.totalPreCoupon(formId, parseInt(jQuery('#recurwp_total_no_discount_' + formId).val()));
-
-    //     // Filter everything except alphanumeric, hyphen and underscore 
-    //     var safeCouponCode = couponCode.replace(/[^A-Za-z0-9_-]+/g, '');
-
-    //     // Show spinner and disable apply btn
-    //     this.couponSpinner(formId);
-    //     this.couponFieldsDisable(formId);
-        
-    //     // Ajax post coupon code to recurly API
-    //     jQuery.ajax({
-    //         method: 'POST',
-    //         url: recurwp_frontend_strings.ajaxurl,
-    //         data: {
-    //             'action':       'get_total_after_coupon',
-    //             'couponCode':   safeCouponCode,
-    //             //'total':        parseInt(jQuery('#recurwp_total_no_discount_' + formId).val()),
-    //             total:          _this.getTotal(formId),
-    //             'formId':       formId
-    //         }
-    //     }).done(function(response: string) {
-    //         var _response = JSON.parse(response);
-
-    //         // if successful
-    //         if (_response.is_success) {
-    //             var newPrice = _response.meta.new_total,
-    //             discountValue = _response.meta.discount_value;
-
-    //             // update price
-    //             _this.updateTotal(formId, newPrice);
-    //             _this.couponApplyResponse(formId, true, couponCode, discountValue);
-    //         } else {
-    //             // Failed
-    //             _this.couponApplyResponse(formId);
-    //         }
-    //         _this.couponSpinner(formId, 'hide');
-            
-    //     });
-    // }
-
-    // public removeCoupon(formId) {
-
-    //     var $couponInfo = jQuery('#recurwp_coupon_container_' + formId + ' #recurwp_coupon_info');
-    //     var preCouponTotal = window['gform_recurwp_pre_coupon_total_' + formId];
-
-    //     // Show spinner
-    //     this.couponSpinner(formId);
-    //     // Enable fields
-    //     this.couponFieldsDisable(formId, 'enable');
-    //     // Empty coupon info
-    //     $couponInfo.empty();
-    //     // Reset form total
-    //     this.updateTotal(formId, preCouponTotal);
-    //     // Hide spinner 
-    //     this.couponSpinner(formId, 'hide');
-    // }
-
-    // public totalPreCoupon(formId, oldTotal) {
-    //     window['gform_recurwp_pre_coupon_total_' + formId] = oldTotal;
-    // }
-
-    // /**
-    //  * Show/Hide the spinner
-    //  */
-    // public couponSpinner( formId:number, state:string = 'show' ) {
-    //     var $spinner = jQuery('#recurwp_coupon_container_' + formId + ' #recurwp_coupon_spinner');
-    //     if (state == 'show') {
-    //         $spinner.show();
-    //     } else {
-    //         $spinner.hide();
-    //     }
-    // }
-
-    // /**
-    //  * Enable/Disable apply button
-    //  */
-    // public couponFieldsDisable( formId, state:string = 'disable' ) {
-    //     var $applyButton = jQuery('#recurwp_coupon_container_' + formId + ' #recurwpCouponApply'),
-    //     $inputField = jQuery('#recurwp_coupon_container_' + formId + ' #recurwp_coupon_code_' + formId);
-
-    //     // Disabled if a new price already exists
-    //     var is_disabled = window['new_total_' + formId] == 0;
-
-    //     if (state == 'disable') {
-    //         $applyButton.prop('disabled', true);
-    //         $inputField.prop('disabled', true);
-    //     } else {
-    //         $applyButton.prop('disabled', false);
-    //         $inputField.prop('disabled', false);
-    //     }
-    // }
-
-    // public couponApplyResponse(formId, isSuccessful:boolean = false, couponCode:string = '', discountValue:string = '') {
-        
-    //     var $couponInfo = jQuery('#recurwp_coupon_container_' + formId + ' #recurwp_coupon_info');
-    //     var $couponError = jQuery('#recurwp_coupon_container_' + formId + ' #recurwp_coupon_error');
-    //     // If correct coupon 
-    //     if (isSuccessful) {
-    //         var couponDetails = `
-    //         <table class="recurwp_coupon_table">
-    //             <tr>
-    //                 <td><a href="javascript:void(0);" onclick="recurwp.removeCoupon(`+formId+`)" class="recurwp_coupon_remove" title="Remove Coupon">x</a> `+couponCode+`</td>
-    //                 <td>`+discountValue+`</td>
-    //             </tr>
-    //         </table>
-    //         `;
-    //         $couponInfo.html(couponDetails);
-
-    //         // Disable apply button
-    //         this.couponFieldsDisable(formId);
-    //     } else {
-    //         $couponError.addClass('isVisible');
-    //         setTimeout(function(){
-    //             $couponError.removeClass('isVisible');
-    //         },3000);
-    //         this.couponFieldsDisable(formId, 'enable');
-    //     }
-    // }
-
-    // public getTotal(formId) {
-    //     return window.recurwpTotal;
-    // }
-
-    // /** 
-    //  * Update form total
-    //  */
-    // public updateTotal(formId, newTotal: Number) {
-    //     window.recurwpTotal = newTotal;
-    //     gform.addFilter('gform_product_total', function (total, formId) {
-    //         return newTotal;
-    //     });
-    //     window['new_total_' + formId] = newTotal;
-    //     gformCalculateTotalPrice(formId);
-    // }
 }
 
-var recurwp = new RecurWP(formId);
+jQuery(document).bind('gform_post_render', function(event:any, form_id:number){
+    var recurwp = new RecurWP(form_id);
+    jQuery('#gform_7').on('change', function() {
+        // let instance = recurwp.productField.getVisibleInstance();
+        // console.log(instance);
+    });
+   
+    recurwp.productField.init();
+});
