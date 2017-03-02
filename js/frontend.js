@@ -145,6 +145,11 @@ var RecurWPFieldCoupon = (function (_super) {
             __this.spinner('hide');
         });
     };
+    /**
+     * Remove Coupon and recalculate
+     *
+     * @returns void
+     */
     RecurWPFieldCoupon.prototype.remove = function () {
         var $couponInfo = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_info');
         var preCouponTotal = window.RecurWPTotalValuePreCoupon;
@@ -159,6 +164,23 @@ var RecurWPFieldCoupon = (function (_super) {
         // Hide spinner 
         this.spinner('hide');
     };
+    /**
+     * Empty coupon container
+     *
+     * @returns void
+     */
+    RecurWPFieldCoupon.prototype.empty = function () {
+        var $couponInfo = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_info');
+        // Enable fields
+        this.disableFields('enable');
+        // Empty coupon info
+        $couponInfo.empty();
+    };
+    /**
+     * Sanitize coupon code
+     *
+     * @param couponCode {string}
+     */
     RecurWPFieldCoupon.prototype.sanitize = function (couponCode) {
         var safeCouponCode = couponCode.replace(/[^A-Za-z0-9_-]+/g, '');
         return safeCouponCode;
@@ -307,10 +329,12 @@ var RecurWP = (function () {
     return RecurWP;
 }());
 jQuery(document).bind('gform_post_render', function (event, form_id) {
+    /** Instantiate Recurwp */
     var recurwp = new RecurWP(form_id);
-    jQuery('#gform_7').on('change', function () {
-        // let instance = recurwp.productField.getVisibleInstance();
-        // console.log(instance);
+    /** Watch for total change */
+    jQuery('.ginput_total_' + form_id).next('input').on('change', function (e) {
+        e.stopPropagation();
+        recurwp.couponField.empty();
     });
     recurwp.productField.init();
 });
