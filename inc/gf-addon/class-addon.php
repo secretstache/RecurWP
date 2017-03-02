@@ -348,23 +348,16 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 )
             ),
             array(
-                'title'      => 'Recurly Settings',
-                'fields'     => array(
-                    array(
-                        'name'     => 'recurringAmount',
-                        'label'    => esc_html__( 'Subscription Plan', 'gravityforms' ),
-                        'type'     => 'select',
-                        'choices'  => $this->recurring_amount_choices(),
-                        'required' => true,
-                        'tooltip'  => '<h6>' . esc_html__( 'Recurring Amount', 'gravityforms' ) . '</h6>' . esc_html__( "Select which field determines the recurring payment amount, or select 'Form Total' to use the total of all pricing fields as the recurring amount.", 'gravityforms' )
-                    )
-                )
-            ),
-            array(
                 'title'      => esc_html__( 'Other Settings', 'gravityforms' ),
                 'fields'     => parent::other_settings_fields()
             ),
 
+        );
+    }
+
+    public function feed_list_columns() {
+        return array(
+            'feedName'        => esc_html__( 'Name', 'gravityforms' ),
         );
     }
 
@@ -452,19 +445,19 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
      *
      * @return string Plan price
      */
-    public function get_column_value_amount( $feed ) {
-        // Instantiate RecurWP
-        $recurly   = new RecurWP_Recurly();
-        $form      = $this->get_current_form();
-        $plan_code = $feed['meta']['transactionType'] == 'subscription' ? rgars( $feed, 'meta/recurringAmount' ) : '';
-        $plan_price_cents = $recurly->get_plan_price($plan_code);
-        $plan_price = $recurly->cents_to_dollars($plan_price_cents, true);
-        $plan_name = $recurly->get_plan_name($plan_code);
+    // public function get_column_value_amount( $feed ) {
+    //     // Instantiate RecurWP
+    //     $recurly   = new RecurWP_Recurly();
+    //     $form      = $this->get_current_form();
+    //     $plan_code = $feed['meta']['transactionType'] == 'subscription' ? rgars( $feed, 'meta/recurringAmount' ) : '';
+    //     $plan_price_cents = $recurly->get_plan_price($plan_code);
+    //     $plan_price = $recurly->cents_to_dollars($plan_price_cents, true);
+    //     $plan_name = $recurly->get_plan_name($plan_code);
 
-        $plan_description = $plan_name . ' - $' . $plan_price;
+    //     $plan_description = $plan_name . ' - $' . $plan_price;
 
-        return $plan_description;
-    }
+    //     return $plan_description;
+    // }
 
     // /**
     //  * Prevent feeds being listed or created if the API keys aren't valid.
