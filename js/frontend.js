@@ -274,8 +274,9 @@ var RecurWPFieldProduct = (function (_super) {
         jQuery(document).ready(function () {
             var visibleInstance = __this.getVisibleInstance();
             if (visibleInstance) {
-                var currentTotal = __this.getInstanceValue(visibleInstance);
-                __this.total.set(currentTotal);
+                __this.unsetInstancesValues();
+                var currentTotal = __this.updateInstanceValue(visibleInstance);
+                __this.total.set(999);
             }
             else {
                 __this.total.set(0);
@@ -316,6 +317,50 @@ var RecurWPFieldProduct = (function (_super) {
     RecurWPFieldProduct.prototype.getInstanceValue = function (instance) {
         var instanceChild = jQuery(instance).children('#recurwp_product_plan_price_' + this.formId);
         return instanceChild.val();
+    };
+    /**
+     * Note: The following functions handle addition and
+     * removal of 'recurwpSelectedPlan_x_' string. If
+     * this string is prefixed to a particular recurly plan
+     * field, it means that the field is visible/active.
+     * We then treat the field as the provider of plan_code
+     * in submission data. Not a neat way, should have been
+     * better ways, if only gravity forms liked developers.
+     */
+    /**
+     * Remove recurwpSelectedPlan_x_ from provided instance
+     *
+     * @param instance
+     */
+    RecurWPFieldProduct.prototype.unsetInstanceValue = function (instance) {
+        var instanceInput = jQuery(instance).children('input');
+        var instanceCurrentValue = instanceInput.val();
+        var splitValues = instanceCurrentValue.split('_x_');
+        var instanceNewValue = splitValues[1];
+        if (splitValues[1]) {
+            instanceInput.val(instanceNewValue);
+        }
+    };
+    /**
+     * Remove recurwpSelectedPlan_x_ from every instance
+     */
+    RecurWPFieldProduct.prototype.unsetInstancesValues = function () {
+        var instances = this.getInstances();
+        for (var _i = 0, instances_2 = instances; _i < instances_2.length; _i++) {
+            var i = instances_2[_i];
+            this.unsetInstanceValue(i);
+        }
+    };
+    /**
+     * Add recurwpSelectedPlan_x_ to provided instance
+     *
+     * @param instance
+     */
+    RecurWPFieldProduct.prototype.updateInstanceValue = function (instance) {
+        var instanceInput = jQuery(instance).children('input');
+        var instanceCurrentValue = instanceInput.val();
+        var instanceNewValue = 'recurwpSelectedPlan_x_' + instanceCurrentValue;
+        instanceInput.val(instanceNewValue);
     };
     return RecurWPFieldProduct;
 }(RecurWPField));

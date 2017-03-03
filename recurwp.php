@@ -77,9 +77,6 @@ function recurwp_gfaddon() {
     return RecurWP_GF_Recurly::get_instance();
 }
 
-
-
-
 /**
  * Ajax apply coupon
  *
@@ -110,6 +107,21 @@ function recurwp_ajax_apply_coupon() {
 add_action( 'wp_ajax_get_total_after_coupon', 'recurwp_ajax_apply_coupon');
 add_action( 'wp_ajax_nopriv_get_total_after_coupon', 'recurwp_ajax_apply_coupon' );
 
+/**
+ * Add plan_code and payment_amount to submission_data
+ */
+function recurwp_submission_data( $submission_data, $feed, $form, $entry ) {
 
-// $r = new RecurWP_Recurly();
-// print_r($r->get_plans());
+    // Instantiate RecurWP
+    $recurwp = new RecurWP_Recurly();
+
+    $plan_code = $recurwp->extract_plan_code_from_entry($entry);
+    if ($plan_code) {
+        $plan_price_in_cents = $recurwp->get_plan_price($plan_code);
+        $submission_data['plan_code'] = $plan_code;
+        $submission_data['payment_amount'] = $recurwp->cents_to_dollars($plan_price_in_cents);
+    }
+
+    return $submission_data;
+}
+add_filter( 'gform_submission_data_pre_process_payment', 'recurwp_submission_data', 10, 4 );

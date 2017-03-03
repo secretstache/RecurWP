@@ -93,10 +93,27 @@ class RecurWP_GF_Field_Product extends GF_Field {
      * @return string
      */
     public function get_field_input( $form, $value = '', $entry = null ) {
+		$form_id         = absint( $form['id'] );
+		$is_entry_detail = $this->is_entry_detail();
+		$is_form_editor  = $this->is_form_editor();
 
-        $form_id         = $form['id'];
-        $is_entry_detail = $this->is_entry_detail();
-        $id              = (int) $this->id;
+		$html_input_type = 'hidden';
+
+		$logic_event = ! $is_form_editor && ! $is_entry_detail ? $this->get_conditional_logic_event( 'keyup' ) : '';
+		$id          = (int) $this->id;
+		$field_id    = $is_entry_detail || $is_form_editor || $form_id == 0 ? "input_$id" : 'input_' . $form_id . "_$id";
+
+		$value        = esc_attr( $value );
+        
+		$size         = $this->size;
+		$class_suffix = $is_entry_detail ? '_admin' : '';
+		$class        = $size . $class_suffix;
+
+		$max_length = is_numeric( $this->maxLength ) ? "maxlength='{$this->maxLength}'" : '';
+
+		$tabindex              = $this->get_tabindex();
+		$disabled_text         = $is_form_editor ? 'disabled="disabled"' : '';
+        
         $fields          = $form['fields'];
         $field_obj;
 
@@ -105,33 +122,18 @@ class RecurWP_GF_Field_Product extends GF_Field {
                 $field_obj = $field;
             }
         }
-        if ( $is_entry_detail ) {
-            $input = "<input type='hidden' id='input_{$id}' name='input_{$id}' value='{$value}' />";
-
-            return $input . '<br/>' . esc_html__( 'product fields are not editable', 'recurwp' );
-        }
-
-        $disabled_text         = $this->is_form_editor() ? 'disabled="disabled"' : '';
-        $logic_event           = $this->get_conditional_logic_event( 'change' );
-        $plan_price            = 199;
-        $tabindex = $this->get_tabindex();
-
-        // Instantiate RecurWP
         if ($field_obj) {
             $recurly               = new RecurWP_Recurly();
             $plan_code             = $field_obj['recurwpFieldPlan'];
             $plan_price_cents      = $recurly->get_plan_price($plan_code);
             $plan_price            = $recurly->cents_to_dollars($plan_price_cents);
+            $value                 = esc_attr( $plan_code );
         }
 
-       $input = "<div class='ginput_container recurwp_product_container' id='recurwp_product_container_{$form_id}' data-recurwp-id='{$id}'>" . 
-		         "<input id='recurwp_product_plan_price_{$form_id}' type='hidden' value='{$plan_price}'>" .
-		         "</div>";
-        // print_r($form['fields']);
-        // print_r($id);
-        return $input;
+		$input = "<input name='input_{$id}' id='{$field_id}' type='{$html_input_type}' value='{$value}' class='{$class}'  {$tabindex} {$logic_event} {$disabled_text}/>";
 
-    }
+		return sprintf( "<div class='ginput_container ginput_container_text recurwp_product_container'>%s</div>", $input );
+	}
 }
 
 GF_Fields::register( new RecurWP_GF_Field_Product() );

@@ -344,7 +344,21 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                         'class'    => 'medium',
                         'required' => true,
                         'tooltip'  => '<h6>' . esc_html__( 'Name', 'gravityforms' ) . '</h6>' . esc_html__( 'Enter a feed name to uniquely identify this setup.', 'gravityforms' )
-                    )
+                    ),
+                    array(
+                        'name'     => 'transactionType',
+                        'label'    => esc_html__( 'Transaction Type', 'gravityforms' ),
+                        'type'     => 'select',
+                        'onchange' => "jQuery(this).parents('form').submit();",
+                        'choices'  => array(
+                            array(
+                                'label' => esc_html__( 'Select a transaction type', 'gravityforms' ),
+                                'value' => ''
+                            ),
+                            array( 'label' => esc_html__( 'Subscription', 'gravityforms' ), 'value' => 'subscription' ),
+                        ),
+                        'tooltip'  => '<h6>' . esc_html__( 'Transaction Type', 'gravityforms' ) . '</h6>' . esc_html__( 'Select a transaction type.', 'gravityforms' )
+                    ),
                 )
             ),
             array(
@@ -437,28 +451,6 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         return $recurring_choices;
     }
 
-    /**
-     * Get amount column value
-     *
-     * @since  1.0.0
-     * @access public
-     *
-     * @return string Plan price
-     */
-    // public function get_column_value_amount( $feed ) {
-    //     // Instantiate RecurWP
-    //     $recurly   = new RecurWP_Recurly();
-    //     $form      = $this->get_current_form();
-    //     $plan_code = $feed['meta']['transactionType'] == 'subscription' ? rgars( $feed, 'meta/recurringAmount' ) : '';
-    //     $plan_price_cents = $recurly->get_plan_price($plan_code);
-    //     $plan_price = $recurly->cents_to_dollars($plan_price_cents, true);
-    //     $plan_name = $recurly->get_plan_name($plan_code);
-
-    //     $plan_description = $plan_name . ' - $' . $plan_price;
-
-    //     return $plan_description;
-    // }
-
     // /**
     //  * Prevent feeds being listed or created if the API keys aren't valid.
     //  *
@@ -473,7 +465,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     //     return true;
     //
     // }
-    //
+
     /**
      * Enable feed duplication on feed list page and during form duplication.
      *
@@ -734,7 +726,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 $this->log_debug( __METHOD__ . "(): Billing info updation SUCCESSFUL for account_code {$account_code}" );
 
                 // Get the plan code from feed meta
-                $plan_code = $feed['meta']['recurringAmount'];
+                $plan_code = $submission_data['plan_code'];
 
                 // Create subscription
                 $subscription_created = $recurly->create_subscription( $account_code, $plan_code );

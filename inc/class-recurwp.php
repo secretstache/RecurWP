@@ -476,6 +476,18 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                 return self::send_response(false, "Coupon does not exist");
             }
         }
+
+        /**
+         * Extract plan code from $entry 
+         */
+        public function extract_plan_code_from_entry($entry) {
+            foreach($entry as $e) {
+                if (strpos($e, 'recurwpSelectedPlan_x_') !== false) {
+                    $plan_code = explode('recurwpSelectedPlan_x_', $e);
+                    return $plan_code[1];
+                }
+            }
+        }
     }
 }
 new RecurWP_Recurly();
