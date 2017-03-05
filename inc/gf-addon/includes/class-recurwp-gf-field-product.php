@@ -130,7 +130,7 @@ class RecurWP_GF_Field_Product extends GF_Field {
             $value                 = esc_attr( $plan_code );
         }
 
-		$input = "<input name='input_{$id}' id='{$field_id}' type='{$html_input_type}' value='{$value}' class='{$class}'  {$tabindex} {$logic_event} {$disabled_text}/>";
+		$input = "<input name='input_{$id}' id='{$field_id}' type='{$html_input_type}' value='{$value}' data-plan-price='{$plan_price}' class='{$class}'  {$tabindex} {$logic_event} {$disabled_text}/>";
 
 		return sprintf( "<div class='ginput_container ginput_container_text recurwp_product_container'>%s</div>", $input );
 	}

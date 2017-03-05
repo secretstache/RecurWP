@@ -325,8 +325,14 @@ class RecurWPFieldProduct extends RecurWPField {
             let visibleInstance = __this.getVisibleInstance();
             if (visibleInstance) {
                 __this.unsetInstancesValues();
-                var currentTotal = __this.updateInstanceValue(visibleInstance);
-                __this.total.set(999);
+
+                // Mark instance as selected
+                __this.updateInstanceValue(visibleInstance);
+
+                // Get data-plan-price attr from instance
+                var currentTotal = __this.getPlanPriceFromInstance(visibleInstance)
+                
+                __this.total.set(currentTotal);
             } else {
                 __this.total.set(0);
             }
@@ -366,9 +372,9 @@ class RecurWPFieldProduct extends RecurWPField {
     /**
      * Get the value (plan_code) of an instance 
      */
-    public getInstanceValue(instance:any) {
-        var instanceChild = jQuery(instance).children('#recurwp_product_plan_price_' + this.formId);
-        return instanceChild.val();
+    public getPlanPriceFromInstance(instance:any) {
+        var instanceChild = jQuery(instance).children('input');
+        return instanceChild.data('planPrice');
     }
 
     /**
