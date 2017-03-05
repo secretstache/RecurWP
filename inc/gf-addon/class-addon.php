@@ -349,12 +349,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                         'name'     => 'transactionType',
                         'label'    => esc_html__( 'Transaction Type', 'gravityforms' ),
                         'type'     => 'select',
-                        'onchange' => "jQuery(this).parents('form').submit();",
                         'choices'  => array(
-                            array(
-                                'label' => esc_html__( 'Select a transaction type', 'gravityforms' ),
-                                'value' => ''
-                            ),
                             array( 'label' => esc_html__( 'Subscription', 'gravityforms' ), 'value' => 'subscription' ),
                         ),
                         'tooltip'  => '<h6>' . esc_html__( 'Transaction Type', 'gravityforms' ) . '</h6>' . esc_html__( 'Select a transaction type.', 'gravityforms' )
