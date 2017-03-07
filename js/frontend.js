@@ -259,6 +259,9 @@ var RecurWPFieldProduct = (function (_super) {
                 .on('change', function (e) {
                 // e.preventDefault();
                 // e.stopPropagation();
+                //__this.init();
+            });
+            jQuery(document).bind("gform_post_conditional_logic", function () {
                 __this.init();
             });
         });

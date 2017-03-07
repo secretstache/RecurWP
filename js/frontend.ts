@@ -35,6 +35,7 @@ interface Window {
     RecurWPTotalValue: string;
     RecurWPTotalValuePreCoupon: string;
     recurwp_frontend_strings: object;
+    gf_form_conditional_logic: [any];
 }
 
 /**
@@ -308,7 +309,10 @@ class RecurWPFieldProduct extends RecurWPField {
                 .on('change', function(e:any) {
                     // e.preventDefault();
                     // e.stopPropagation();
-                    __this.init();
+                    //__this.init();
+            });
+            jQuery(document).bind("gform_post_conditional_logic", function () {
+                __this.init();
             });
         });
 
@@ -423,6 +427,8 @@ class RecurWPFieldProduct extends RecurWPField {
 
         instanceInput.val(instanceNewValue);
     }
+
+    
 }
 
 /**
