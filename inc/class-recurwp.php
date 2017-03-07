@@ -394,11 +394,11 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
             } catch (Recurly_ValidationError $e) {
 
                 // The data or card are invalid
-                return self::send_response(false, "Invalid data or card: $e");
+                return self::send_response(false, "Invalid data or card: " . $e->getMessage());
             } catch (Recurly_NotFoundError $e) {
 
                 // Could not find account
-                return self::send_response(false, "Not Found: $e");
+                return self::send_response(false, "Not Found: " . $e->getMessage());
             }
         }
 
@@ -428,7 +428,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
             } catch (Recurly_ValidationError $e) {
 
                 // Failed
-                return self::send_response(false, $e);
+                return self::send_response(false, $e->getMessage());
             } catch (Recurly_NotFoundError $e) {
 
                 // Failed
@@ -474,7 +474,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                 }
                 return self::send_response(true, '', $response );
             } catch (Recurly_NotFoundError $e) {
-                return self::send_response(false, "Coupon does not exist");
+                return self::send_response(false, "Coupon does not exist: " . $e->getMessage());
             }
         }
 

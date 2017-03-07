@@ -747,7 +747,8 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 }
             } else {
                 $this->log_debug( __METHOD__ . "(): Billing info updation FAILED for account_code: {$account_code}  {$account_created['message']}" );
-                $error_message = "Unable to update Billing Information.";
+                $error_message = $billing_updated['message'];
+                //$error_message = "Unable to update Billing Information.";
             }
         } else {
             $this->log_debug( __METHOD__ . "(): Recurly account creation FAILED for account_code: {$account_code}  {$account_created['message']}" );
