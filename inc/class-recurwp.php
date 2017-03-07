@@ -466,8 +466,9 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                     $response['new_total']      = (int) $total * ((100-$discount_percent) / 100);
                     $response['discount_value'] = '-' . $discount_percent . '%';
                 } elseif ($discount_type == 'dollars') {
-                    $discount_cents = $coupon->discount_in_cents;
-                    $discount_dollars = $discount_cents;
+                    $d = $coupon->discount_in_cents['USD'];
+                    $discount_cents = $d->amount_in_cents;
+                    $discount_dollars = $discount_cents / 100.0;
                     $response['new_total']      = $total - $discount_dollars;
                     $response['discount_value'] = '- $' . $discount_dollars;
                 }

@@ -131,6 +131,7 @@ var RecurWPFieldCoupon = (function (_super) {
             }
         }).done(function (response) {
             var _response = JSON.parse(response);
+            console.log(_response);
             // if successful
             if (_response.is_success) {
                 var newPrice = _response.meta.new_total, discountValue = _response.meta.discount_value;
@@ -254,20 +255,11 @@ var RecurWPFieldProduct = (function (_super) {
         var __this = _this;
         jQuery(document).ready(function () {
             __this.init();
-            jQuery('#gform_' + __this.formId)
-                .not('#gform_' + __this.formId + ' :input.gform_hidden')
-                .on('change', function (e) {
-                // e.preventDefault();
-                // e.stopPropagation();
-                //__this.init();
-            });
             jQuery(document).bind("gform_post_conditional_logic", function () {
                 __this.init();
             });
         });
         return _this;
-        // Trigger form change event 
-        //jQuery('#gform_'+__this.formId+' :input').trigger('change');
     }
     /**
      * Initialize
