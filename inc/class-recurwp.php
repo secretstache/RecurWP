@@ -414,10 +414,11 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          *
          * @return bool
          */
-        public function create_subscription( $account_code, $plan_code, $currency = 'USD' ) {
+        public function create_subscription( $account_code, $plan_code, $coupon_code = '', $currency = 'USD' ) {
             try {
                 $subscription = new Recurly_Subscription();
                 $subscription->plan_code = $plan_code;
+                $subscription->coupon_code = $coupon_code;
                 $subscription->currency = $currency;
                 $account = Recurly_Account::get($account_code);
                 $subscription->account = $account;

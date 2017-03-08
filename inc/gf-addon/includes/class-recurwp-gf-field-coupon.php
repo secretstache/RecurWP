@@ -95,9 +95,19 @@ class RecurWP_GF_Field_Coupon extends GF_Field {
      */
     public function get_field_input( $form, $value = '', $entry = null ) {
 
-        $form_id         = $form['id'];
-        $is_entry_detail = $this->is_entry_detail();
+        $form_id         = absint( $form['id'] );
+		$is_entry_detail = $this->is_entry_detail();
+		$is_form_editor  = $this->is_form_editor();
         $id              = (int) $this->id;
+        $field_id    = $is_entry_detail || $is_form_editor || $form_id == 0 ? "input_$id" : 'input_' . $form_id . "_$id";
+
+        $value        = esc_attr( $value );
+
+        $size         = $this->size;
+		$class_suffix = $is_entry_detail ? '_admin' : '';
+		$class        = $size . $class_suffix . ' recurwp_coupon_code';
+
+        $tabindex              = $this->get_tabindex();
 
         if ( $is_entry_detail ) {
             $input = "<input type='hidden' id='input_{$id}' name='input_{$id}' value='{$value}' />";
@@ -106,20 +116,18 @@ class RecurWP_GF_Field_Coupon extends GF_Field {
         }
 
         $disabled_text         = $this->is_form_editor() ? 'disabled="disabled"' : '';
-        $logic_event           = $this->get_conditional_logic_event( 'change' );
+        $logic_event           = $this->get_conditional_logic_event( 'keyup' );
         $placeholder_attribute = $this->get_field_placeholder_attribute();
         $coupons_detail        = rgpost( "recurwp_coupons{$form_id}" );
         $coupon_codes          = empty( $coupons_detail ) ? '' : rgpost( "input_{$id}" );
         $value_class           = ($value ? 'has-value' : '');
-       $input = "<div class='ginput_container recurwp_coupon_container {$value_class}' id='recurwp_coupon_container_{$form_id}'>" .
-		         "<input id='recurwp_coupon_code_{$form_id}' class='recurwp_coupon_code' type='text' {$disabled_text} {$placeholder_attribute} " . $this->get_tabindex() . ' value='.$value.'>' .
-		         "<input type='button' data-form-id='{$form_id}' value='" . esc_attr__( 'Apply', 'gravityformscoupons' ) . "' id='recurwpCouponApply' class='button' {$disabled_text} " . $this->get_tabindex() . '/> ' .
-		         "<img style='display:none;' id='recurwp_coupon_spinner' src='" . GFCommon::get_base_url() . "/images/spinner.gif' alt='" . esc_attr__( 'please wait', 'gravityformscoupons' ) . "'/>" .
+
+        $input = "<div class='ginput_container recurwp_coupon_container {$value_class}' id='recurwp_coupon_container_{$form_id}'>" . 
+                 "<input name='input_{$id}' id='{$field_id}' type='text' value='{$value}' class='{$class}'  {$tabindex} {$logic_event} {$disabled_text}/>" . 
+                 "<input type='button' data-form-id='{$form_id}' value='" . esc_attr__( 'Apply', 'recurwp' ) . "' id='recurwpCouponApply' class='button' {$disabled_text} " . $this->get_tabindex() . '/> ' .
+                 "<img style='display:none;' id='recurwp_coupon_spinner' src='" . GFCommon::get_base_url() . "/images/spinner.gif' alt='" . esc_attr__( 'please wait', 'recurwp' ) . "'/>" .
 		         "<div id='recurwp_coupon_info' class='recurwp_coupon_info'></div>" .
                  "<div id='recurwp_coupon_error' class='recurwp_coupon_error'><span>Invalid Coupon.</span></div>" .
-		         "<input type='hidden' id='recurwp_coupon_codes_{$form_id}' name='input_{$id}' value='" . esc_attr( $coupon_codes ) . "' {$logic_event} />" .
-		         "<input type='hidden' id='recurwp_total_no_discount_{$form_id}'/>" .
-		         "<input type='hidden' id='recurwp_coupons{$form_id}' name='recurwp_coupons{$form_id}' value='" . esc_attr( $coupons_detail ) . "' />" .
 		         "</div>";
 
         return $input;

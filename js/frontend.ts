@@ -137,7 +137,7 @@ class RecurWPFieldCoupon extends RecurWPField {
         }
 
         var $applyButton = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwpCouponApply'),
-        $inputField = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_code_' + this.formId);
+        $inputField = jQuery('#recurwp_coupon_container_' + this.formId + 'input.recurwp_coupon_code');
         if ($applyButton.prop('disabled') || $inputField.prop('disabled') ) {
             return;
         }
@@ -164,7 +164,6 @@ class RecurWPFieldCoupon extends RecurWPField {
             }
         }).done(function(response: string) {
             var _response = JSON.parse(response);
-            console.log(_response);
             // if successful
             if (_response.is_success) {
                 var newPrice = _response.meta.new_total,

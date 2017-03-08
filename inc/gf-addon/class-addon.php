@@ -393,6 +393,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
             array( 'name' => 'state', 'label' => esc_html__( 'State', 'recurwp' ), 'required' => true ),
             array( 'name' => 'zip', 'label' => esc_html__( 'Zip', 'recurwp' ), 'required' => true ),
             array( 'name' => 'country', 'label' => esc_html__( 'Country', 'recurwp' ), 'required' => true ),
+            array( 'name' => 'recurlyCoupon', 'label' => esc_html__( 'Recurly Coupon', 'recurwp' ), 'required' => false )
         );
 
         return $fields;
@@ -653,6 +654,9 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
      */
     public function subscribe( $feed, $submission_data, $form, $entry ) {
 
+        // $this->log_debug(print_r($submission_data, 1));
+        // $this->log_debug(print_r($entry, 1));
+
         // Instantiate Recurly
         $recurly = new RecurWP_Recurly();
 
@@ -722,9 +726,10 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
 
                 // Get the plan code from feed meta
                 $plan_code = $submission_data['plan_code'];
+                $recurly_coupon = $submission_data['recurlyCoupon'];
 
                 // Create subscription
-                $subscription_created = $recurly->create_subscription( $account_code, $plan_code );
+                $subscription_created = $recurly->create_subscription( $account_code, $plan_code, $recurly_coupon );
 
                 if ( $subscription_created['is_success'] ) {
 
@@ -742,7 +747,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                 } else {
 
                     // Subscription failed
-                    $error_message = "Unable to charge the provided credit card.";
+                    $error_message = "Could not charge the provided credit card. {$subscription_created['message']}";
                     $this->log_debug( __METHOD__ . "(): Subscription creation FAILED for account_code: {$account_code}  {$subscription_created['message']}" );
                 }
             } else {
