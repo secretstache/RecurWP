@@ -104,7 +104,7 @@ class RecurWP_GF_Field_Product extends GF_Field {
 		$field_id    = $is_entry_detail || $is_form_editor || $form_id == 0 ? "input_$id" : 'input_' . $form_id . "_$id";
 
 		$value        = esc_attr( $value );
-        
+
 		$size         = $this->size;
 		$class_suffix = $is_entry_detail ? '_admin' : '';
 		$class        = $size . $class_suffix;
@@ -113,7 +113,7 @@ class RecurWP_GF_Field_Product extends GF_Field {
 
 		$tabindex              = $this->get_tabindex();
 		$disabled_text         = $is_form_editor ? 'disabled="disabled"' : '';
-        
+
         $fields          = $form['fields'];
         $field_obj;
 
@@ -123,7 +123,7 @@ class RecurWP_GF_Field_Product extends GF_Field {
             }
         }
         if ($field_obj) {
-            $recurly               = new RecurWP_Recurly();
+            $recurly               = new GF_Recurly_Helper();
             $plan_code             = $field_obj['recurwpFieldPlan'];
             $plan_price_cents      = $recurly->get_plan_price($plan_code);
             $plan_price            = $recurly->cents_to_dollars($plan_price_cents);

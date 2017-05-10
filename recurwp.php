@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: RecurWP
+Plugin Name: Gravity Forms Recurly Add-On
 Plugin URI: https://www.secretstache.com/
-Description: RecurWP
+Description: Integrates Gravity Forms with Recurly, enabling end users to purchase goods and services through Gravity Forms.
 Version: 1.0.0
 Author: Secret Stache Media
 Author URI: https://www.secretstache.com/
@@ -15,30 +15,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Global Constants
-define( 'RECURWP_VERSION', '1.0.0' );
-define( 'RECURWP_URL', plugin_dir_url( __FILE__ ) );
-define( 'RECURWP_DIR', plugin_dir_path( __FILE__ ) );
+define( 'GF_RECURLY_VERSION', '1.0.0' );
+define( 'GF_RECURLY_URL', plugin_dir_url( __FILE__ ) );
+define( 'GF_RECURLY_DIR', plugin_dir_path( __FILE__ ) );
 
 // Path Constants
-define( 'RECURWP_DIR_INC', trailingslashit(RECURWP_DIR . '/inc') );
-define( 'RECURWP_DIR_LIB', trailingslashit(RECURWP_DIR . '/lib') );
+define( 'GF_RECURLY_DIR_INC', trailingslashit(GF_RECURLY_DIR . '/inc') );
+define( 'GF_RECURLY_DIR_LIB', trailingslashit(GF_RECURLY_DIR . '/lib') );
 
 // Grab files
-if ( ! class_exists('Recurly_Client') )
-    require_once( RECURWP_DIR_LIB . 'recurly.php' );
-require_once( RECURWP_DIR_INC . 'class-recurwp.php' );
+if ( ! class_exists('Recurly_Client') ) {
+    require_once( GF_RECURLY_DIR_LIB . 'recurly.php' );
+}
+require_once( GF_RECURLY_DIR_INC . 'class-recurwp.php' );
 
 // If Gravity Forms is loaded, bootstrap the RecurWP Recurly Add-On.
-add_action( 'gform_loaded', array( 'RecurWP_Bootstrap', 'load' ), 5 );
+add_action( 'gform_loaded', array( 'GF_Recurly_Bootstrap', 'load' ), 5 );
 
 /**
- * Class RecurWP_Bootstrap
+ * Class GF_Recurly_Bootstrap
  *
  * Handles the loading of the Recurly GF Add-On and registers with the Add-On framework.
  *
  * @since 1.0.0
  */
-class RecurWP_Bootstrap {
+class GF_Recurly_Bootstrap {
 
     /**
      * If the Payment Add-On Framework exists, Recurly Add-On is loaded.
@@ -56,64 +57,64 @@ class RecurWP_Bootstrap {
             return;
         }
 
-        require_once( RECURWP_DIR_INC . 'gf-addon/class-addon.php' );
+        require_once( GF_RECURLY_DIR_INC . 'gf-addon/class-addon.php' );
 
-        GFAddOn::register( 'RecurWP_GF_Recurly' );
+        GFAddOn::register( 'GF_Recurly' );
 
     }
 }
 
 /**
- * Obtains and returns an instance of the RecurWP_GF_Recurly class
+ * Obtains and returns an instance of the GF_Recurly class
  *
  * @since  1.0.0
  * @access public
  *
- * @uses RecurWP_GF_Recurly::get_instance()
+ * @uses GF_Recurly::get_instance()
  *
- * @return object RecurWP_GF_Recurly
+ * @return object GF_Recurly
  */
-function recurwp_gfaddon() {
-    return RecurWP_GF_Recurly::get_instance();
+function gf_recurly() {
+    return GF_Recurly::get_instance();
 }
 
 /**
  * Ajax apply coupon
  *
- * @return void 
+ * @return void
  */
-function recurwp_ajax_apply_coupon() {
+function gf_recurly_ajax_apply_coupon() {
     if ( isset($_REQUEST) ) {
         $coupon_code    = $_REQUEST['couponCode'];
         $form_id        = $_REQUEST['formId'];
         $total          = $_REQUEST['total'];
-        $recurly = new RecurWP_Recurly();
+        $recurly = new GF_Recurly_Helper();
         // Make sure coupon not empty
         if ( empty( $coupon_code ) ) {
             die( json_encode( $recurly->send_response(false, 'Please provide a coupon code.' ) ) );
         }
-        
+
         $new_price = $recurly->apply_coupon($total, $coupon_code);
 
         if ($new_price['is_success']) {
             $response = $new_price['meta'];
-            die( json_encode( $recurly->send_response(true, '', $response) ) ); 
+            die( json_encode( $recurly->send_response(true, '', $response) ) );
         } else {
-            die( json_encode( $recurly->send_response(false, 'Coupon not found.' ) ) ); 
+            die( json_encode( $recurly->send_response(false, 'Coupon not found.' ) ) );
         }
     }
 }
 // Ajax action for coupon discount calculation
-add_action( 'wp_ajax_get_total_after_coupon', 'recurwp_ajax_apply_coupon');
-add_action( 'wp_ajax_nopriv_get_total_after_coupon', 'recurwp_ajax_apply_coupon' );
+add_action( 'wp_ajax_get_total_after_coupon', 'gf_recurly_ajax_apply_coupon');
+add_action( 'wp_ajax_nopriv_get_total_after_coupon', 'gf_recurly_ajax_apply_coupon' );
 
 /**
  * Add plan_code and payment_amount to submission_data
  */
-function recurwp_submission_data( $submission_data, $feed, $form, $entry ) {
+function gf_recurly_submission_data( $submission_data, $feed, $form, $entry ) {
 
     // Instantiate RecurWP
-    $recurwp = new RecurWP_Recurly();
+    $recurwp = new GF_Recurly_Helper();
 
     $plan_code = $recurwp->extract_plan_code_from_entry($entry);
     if ($plan_code) {
@@ -124,4 +125,4 @@ function recurwp_submission_data( $submission_data, $feed, $form, $entry ) {
 
     return $submission_data;
 }
-add_filter( 'gform_submission_data_pre_process_payment', 'recurwp_submission_data', 10, 4 );
+add_filter( 'gform_submission_data_pre_process_payment', 'gf_recurly_submission_data', 10, 4 );

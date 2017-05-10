@@ -4,13 +4,13 @@
 GFForms::include_payment_addon_framework();
 
 /**
- * Class RecurWP_GF_Recurly
+ * Class GF_Recurly
  *
  * Primary class to manage the RecurWP Gravity Form add-on.
  *
  * @since 1.0.0
  */
-class RecurWP_GF_Recurly extends GFPaymentAddOn {
+class GF_Recurly extends GFPaymentAddOn {
 
     /**
      * Contains an instance of this class, if available.
@@ -30,7 +30,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
      *
      * @var string $_version Contains the version, defined from recurly.php
      */
-    protected $_version = RECURWP_VERSION;
+    protected $_version = GF_RECURLY_VERSION;
 
     /**
      * Defines the minimum Gravity Forms version required.
@@ -60,7 +60,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
      *
      * @var string $_path The path to the main plugin file, relative to the plugins folder.
      */
-    protected $_path = RECURWP_DIR . '/recurwp.php';
+    protected $_path = GF_RECURLY_DIR . '/recurwp.php';
 
     /**
      * Defines the full path to this class file.
@@ -155,11 +155,11 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     /**
      * Get an instance of this class.
      *
-     * @return RecurWP_GF_Recurly
+     * @return GF_Recurly
      */
     public static function get_instance() {
         if ( self::$_instance == null ) {
-            self::$_instance = new RecurWP_GF_Recurly();
+            self::$_instance = new GF_Recurly();
         }
 
         return self::$_instance;
@@ -188,7 +188,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         parent::init_admin();
 
         add_action( 'gform_editor_js', array( $this, 'editor_script'));
-        add_action( 'gform_field_standard_settings', array( $this, 'recurwp_gf_field_product_settings' ), 10, 2 );
+        add_action( 'gform_field_standard_settings', array( $this, 'gf_recurly_field_product_settings' ), 10, 2 );
         add_action( 'gform_field_standard_settings', array( $this, 'recurwp_recurly_coupon_field_settings' ), 10, 2 );
     }
 
@@ -248,9 +248,9 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
 
     public function styles() {
         $styles = array(
-            array(  
+            array(
                 "handle"    => "recurwp_css",
-                "src"       => RECURWP_URL . "/css/recurwp.css",
+                "src"       => GF_RECURLY_URL . "/css/recurwp.css",
                 "version"   => GFCommon::$version,
                 "enqueue"   => array(
                     array( $this),
@@ -265,11 +265,11 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     /**
      * Recurly Coupon Field settings
      */
-    function recurwp_gf_field_product_settings( $position, $form_id ) {
+    function gf_recurly_field_product_settings( $position, $form_id ) {
 
         //create settings on position 25 (right after Field Label)
         if ( $position == 25 ) {
-            $recurwp = new RecurWP_Recurly();
+            $recurwp = new GF_Recurly_Helper();
             $_plans = $recurwp->get_plans();
             $plans = $_plans['meta']
             ?>
@@ -281,7 +281,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
                     <option value="">Choose...</option>
                     <?php foreach( $plans as $plan ) { ?>
                         <option value="<?php echo $plan->plan_code;?>"><?php echo $plan->name;?></option>
-                        <?php 
+                        <?php
                     } ?>
                 </select>
             </li>
@@ -296,21 +296,21 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
 
         //create settings on position 25 (right after Field Label)
         if ( $position == 25 ) {
-           
+
             ?>
-        
+
             <?php
         }
     }
-    
+
     function editor_script(){
         ?>
         <script type='text/javascript'>
             jQuery(document).bind('gform_load_field_settings', function(event, field, form){
                 // Coupon field value
                 jQuery('#recurwp_field_active_coupon').val(field.recurwpFieldActiveCoupon);
-                
-                // Plan field value  
+
+                // Plan field value
                 jQuery('#recurwp_field_plan').val(field.recurwpFieldPlan);
             });
 
@@ -427,7 +427,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     public function recurring_amount_choices() {
 
         // Instantiate RecurWP
-        $recurly = new RecurWP_Recurly();
+        $recurly = new GF_Recurly_Helper();
 
         $form                = $this->get_current_form();
         $_plans              = $recurly->get_plans();
@@ -562,7 +562,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         if ( isset( $_POST['gform-settings-save'] ) ) {
 
             // Instantiate RecurWP
-            $recurly = new RecurWP_Recurly();
+            $recurly = new GF_Recurly_Helper();
 
             // Get options
             $subdomain = $recurly->get_gf_option( 'recurly_subdomain' );
@@ -658,7 +658,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
         // $this->log_debug(print_r($entry, 1));
 
         // Instantiate Recurly
-        $recurly = new RecurWP_Recurly();
+        $recurly = new GF_Recurly_Helper();
 
         // Hold our data for response, we'll set these later in the process
         $is_success = false;
@@ -807,7 +807,7 @@ class RecurWP_GF_Recurly extends GFPaymentAddOn {
     public function is_valid_recurly_info() {
 
         // Instantiate RecurWP
-        $recurwp = new RecurWP_Recurly();
+        $recurwp = new GF_Recurly_Helper();
         $subdomain = $recurwp->get_gf_option( 'recurly_subdomain' );
         $api_key = $recurwp->get_gf_option( 'recurly_private_key' );
 

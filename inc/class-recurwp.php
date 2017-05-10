@@ -5,13 +5,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-if ( ! class_exists( 'RecurWP_Recurly' ) ) {
+if ( ! class_exists( 'GF_Recurly_Helper' ) ) {
     /**
      * Recurly Helper Class
      *
      * @since      1.0.0
      */
-    class RecurWP_Recurly {
+    class GF_Recurly_Helper {
 
         function __construct() {
 
@@ -136,7 +136,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         public static function get_gf_option( $option_name ) {
 
             // Get all options
-            $options = get_option( 'gravityformsaddon_recurwp_settings' );
+            $options = get_option( 'gravityformsaddon_recurly_settings' );
 
             return isset( $options[ $option_name ] ) ? $options[ $option_name ] : null;
         }
@@ -155,13 +155,13 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
          */
         public function validate_info( $private_key = null, $sub_domain = null, $cache = true ) {
 
-            $recurly_key_info = get_transient( 'recurwp_recurly_key_info' );
+            $recurly_key_info = get_transient( 'gf_recurly_key_info' );
 
             if ( ! $cache ) {
                 $recurly_key_info = null;
 
                 // Flush cache
-                delete_transient( 'recurwp_recurly_key_info' );
+                delete_transient( 'gf_recurly_key_info' );
             }
 
             // Check if already validated
@@ -184,7 +184,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
                     $recurly_key_info = array( 'is_valid_key' => '1' );
 
                     // Caching response
-                    set_transient( 'recurwp_recurly_key_info', $recurly_key_info, 86400 ); //caching for 24 hours
+                    set_transient( 'gf_recurly_key_info', $recurly_key_info, 86400 ); //caching for 24 hours
 
                     return true;
                 } else {
@@ -480,7 +480,7 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         }
 
         /**
-         * Extract plan code from $entry 
+         * Extract plan code from $entry
          */
         public function extract_plan_code_from_entry($entry) {
             foreach($entry as $e) {
@@ -492,4 +492,4 @@ if ( ! class_exists( 'RecurWP_Recurly' ) ) {
         }
     }
 }
-new RecurWP_Recurly();
+new GF_Recurly_Helper();
