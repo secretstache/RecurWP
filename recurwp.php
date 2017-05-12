@@ -6,7 +6,7 @@ Description: Integrates Gravity Forms with Recurly, enabling end users to purcha
 Version: 1.0.0
 Author: Secret Stache Media
 Author URI: https://www.secretstache.com/
-Text Domain: recurwp
+Text Domain: gravityformsrecurly
 Domain Path: /languages
 */
 

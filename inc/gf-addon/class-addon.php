@@ -6,7 +6,7 @@ GFForms::include_payment_addon_framework();
 /**
  * Class GF_Recurly
  *
- * Primary class to manage the RecurWP Gravity Form add-on.
+ * Primary class to manage the Recurly Gravity Form add-on.
  *
  * @since 1.0.0
  */
@@ -90,7 +90,7 @@ class GF_Recurly extends GFPaymentAddOn {
      *
      * @var string $_title The title of the Add-On.
      */
-    protected $_title = 'RecurWP Gravity Forms Add-On';
+    protected $_title = 'Gravity Forms Recurly Add-On';
 
     /**
      * Defines the short title of the Add-On.
@@ -100,7 +100,7 @@ class GF_Recurly extends GFPaymentAddOn {
      *
      * @var string $_short_title The short title.
      */
-    protected $_short_title = 'RecurWP';
+    protected $_short_title = 'Recurly';
 
     /**
      * Defines if Add-On should use Gravity Forms servers for update data.
@@ -189,7 +189,7 @@ class GF_Recurly extends GFPaymentAddOn {
 
         add_action( 'gform_editor_js', array( $this, 'editor_script'));
         add_action( 'gform_field_standard_settings', array( $this, 'gf_recurly_field_product_settings' ), 10, 2 );
-        add_action( 'gform_field_standard_settings', array( $this, 'recurwp_recurly_coupon_field_settings' ), 10, 2 );
+        add_action( 'gform_field_standard_settings', array( $this, 'gf_recurly_coupon_field_settings' ), 10, 2 );
     }
 
     // # SCRIPTS & STYLES -----------------------------------------------------------------------------------------------
@@ -211,7 +211,7 @@ class GF_Recurly extends GFPaymentAddOn {
                 )
             ),
             array(
-                'handle'    => 'recurwp_frontend',
+                'handle'    => 'gf_recurly_frontend',
                 'src'       => $this->get_base_url() . '/../../js/frontend.js',
                 'version'   => $this->_version,
                 'deps'      => array( 'jquery', 'recurly.js', 'gform_json' ),
@@ -224,7 +224,7 @@ class GF_Recurly extends GFPaymentAddOn {
                 )
             ),
             array(
-                'handle'    => 'recurwp_backend',
+                'handle'    => 'gf_recurly_backend',
                 'src'       => $this->get_base_url() . '/js/backend.js',
                 'version'   => $this->_version,
                 'deps'      => array( 'jquery' ),
@@ -237,7 +237,7 @@ class GF_Recurly extends GFPaymentAddOn {
                 ),
                 'strings'   => array(
                     'spinner'          => GFCommon::get_base_url() . '/images/spinner.gif',
-                    'validation_error' => esc_html__( 'Error validating this key. Please try again later.', 'recurwp' ),
+                    'validation_error' => esc_html__( 'Error validating this key. Please try again later.', 'gravityformsrecurly' ),
                 ),
             ),
 
@@ -249,7 +249,7 @@ class GF_Recurly extends GFPaymentAddOn {
     public function styles() {
         $styles = array(
             array(
-                "handle"    => "recurwp_css",
+                "handle"    => "gf_recurly_css",
                 "src"       => GF_RECURLY_URL . "/css/recurwp.css",
                 "version"   => GFCommon::$version,
                 "enqueue"   => array(
@@ -269,15 +269,15 @@ class GF_Recurly extends GFPaymentAddOn {
 
         //create settings on position 25 (right after Field Label)
         if ( $position == 25 ) {
-            $recurwp = new GF_Recurly_Helper();
-            $_plans = $recurwp->get_plans();
+            $recurly = new GF_Recurly_Helper();
+            $_plans = $recurly->get_plans();
             $plans = $_plans['meta']
             ?>
             <li class="recurly_product_setting field_setting">
                 <label for="field_admin_label">
-                    <?php esc_html_e( 'Recurly Plan', 'recurwp' ); ?>
+                    <?php esc_html_e( 'Recurly Plan', 'gravityformsrecurly' ); ?>
                 </label>
-                <select id="recurwp_field_plan" onchange="SetFieldProperty('recurwpFieldPlan', this.value);">
+                <select id="gf_recurly_field_plan" onchange="SetFieldProperty('gfRecurlyFieldPlan', this.value);">
                     <option value="">Choose...</option>
                     <?php foreach( $plans as $plan ) { ?>
                         <option value="<?php echo $plan->plan_code;?>"><?php echo $plan->name;?></option>
@@ -292,7 +292,7 @@ class GF_Recurly extends GFPaymentAddOn {
     /**
      * Recurly Coupon Field settings
      */
-    function recurwp_recurly_coupon_field_settings( $position, $form_id ) {
+    function gf_recurly_coupon_field_settings( $position, $form_id ) {
 
         //create settings on position 25 (right after Field Label)
         if ( $position == 25 ) {
@@ -308,10 +308,10 @@ class GF_Recurly extends GFPaymentAddOn {
         <script type='text/javascript'>
             jQuery(document).bind('gform_load_field_settings', function(event, field, form){
                 // Coupon field value
-                jQuery('#recurwp_field_active_coupon').val(field.recurwpFieldActiveCoupon);
+                jQuery('#gf_recurly_field_active_coupon').val(field.gfRecurlyFieldActiveCoupon);
 
                 // Plan field value
-                jQuery('#recurwp_field_plan').val(field.recurwpFieldPlan);
+                jQuery('#gf_recurly_field_plan').val(field.gfRecurlyFieldPlan);
             });
 
         </script>
@@ -339,25 +339,25 @@ class GF_Recurly extends GFPaymentAddOn {
                 'fields'      => array(
                     array(
                         'name'     => 'feedName',
-                        'label'    => esc_html__( 'Name', 'gravityforms' ),
+                        'label'    => esc_html__( 'Name', 'gravityformsrecurly' ),
                         'type'     => 'text',
                         'class'    => 'medium',
                         'required' => true,
-                        'tooltip'  => '<h6>' . esc_html__( 'Name', 'gravityforms' ) . '</h6>' . esc_html__( 'Enter a feed name to uniquely identify this setup.', 'gravityforms' )
+                        'tooltip'  => '<h6>' . esc_html__( 'Name', 'gravityformsrecurly' ) . '</h6>' . esc_html__( 'Enter a feed name to uniquely identify this setup.', 'gravityformsrecurly' )
                     ),
                     array(
                         'name'     => 'transactionType',
-                        'label'    => esc_html__( 'Transaction Type', 'gravityforms' ),
+                        'label'    => esc_html__( 'Transaction Type', 'gravityformsrecurly' ),
                         'type'     => 'select',
                         'choices'  => array(
-                            array( 'label' => esc_html__( 'Subscription', 'gravityforms' ), 'value' => 'subscription' ),
+                            array( 'label' => esc_html__( 'Subscription', 'gravityformsrecurly' ), 'value' => 'subscription' ),
                         ),
-                        'tooltip'  => '<h6>' . esc_html__( 'Transaction Type', 'gravityforms' ) . '</h6>' . esc_html__( 'Select a transaction type.', 'gravityforms' )
+                        'tooltip'  => '<h6>' . esc_html__( 'Transaction Type', 'gravityforms' ) . '</h6>' . esc_html__( 'Select a transaction type.', 'gravityformsrecurly' )
                     ),
                 )
             ),
             array(
-                'title'      => esc_html__( 'Other Settings', 'gravityforms' ),
+                'title'      => esc_html__( 'Other Settings', 'gravityformsrecurly' ),
                 'fields'     => parent::other_settings_fields()
             ),
 
@@ -381,19 +381,19 @@ class GF_Recurly extends GFPaymentAddOn {
     public function billing_info_fields() {
 
         $fields = array(
-            array( 'name' => 'firstName', 'label' => esc_html__( 'First Name', 'recurwp' ), 'required' => true ),
-            array( 'name' => 'lastName', 'label' => esc_html__( 'Last Name', 'recurwp' ), 'required' => true ),
-            array( 'name' => 'username', 'label' => esc_html__( 'Username', 'recurwp' ), 'required' => false ),
-            array( 'name' => 'email', 'label' => esc_html__( 'Email', 'recurwp' ), 'required' => true ),
-            array( 'name' => 'phone', 'label' => esc_html__( 'Phone', 'recurwp' ), 'required' => false ),
-            array( 'name' => 'company', 'label' => esc_html__( 'Company', 'recurwp' ), 'required' => false ),
-            array( 'name' => 'address', 'label' => esc_html__( 'Address', 'recurwp' ), 'required' => true ),
-            array( 'name' => 'address2', 'label' => esc_html__( 'Address 2', 'recurwp' ), 'required' => false ),
-            array( 'name' => 'city', 'label' => esc_html__( 'City', 'recurwp' ), 'required' => true ),
-            array( 'name' => 'state', 'label' => esc_html__( 'State', 'recurwp' ), 'required' => true ),
-            array( 'name' => 'zip', 'label' => esc_html__( 'Zip', 'recurwp' ), 'required' => true ),
-            array( 'name' => 'country', 'label' => esc_html__( 'Country', 'recurwp' ), 'required' => true ),
-            array( 'name' => 'recurlyCoupon', 'label' => esc_html__( 'Recurly Coupon', 'recurwp' ), 'required' => false )
+            array( 'name' => 'firstName', 'label' => esc_html__( 'First Name', 'gravityformsrecurly' ), 'required' => true ),
+            array( 'name' => 'lastName', 'label' => esc_html__( 'Last Name', 'gravityformsrecurly' ), 'required' => true ),
+            array( 'name' => 'username', 'label' => esc_html__( 'Username', 'gravityformsrecurly' ), 'required' => false ),
+            array( 'name' => 'email', 'label' => esc_html__( 'Email', 'gravityformsrecurly' ), 'required' => true ),
+            array( 'name' => 'phone', 'label' => esc_html__( 'Phone', 'gravityformsrecurly' ), 'required' => false ),
+            array( 'name' => 'company', 'label' => esc_html__( 'Company', 'gravityformsrecurly' ), 'required' => false ),
+            array( 'name' => 'address', 'label' => esc_html__( 'Address', 'gravityformsrecurly' ), 'required' => true ),
+            array( 'name' => 'address2', 'label' => esc_html__( 'Address 2', 'gravityformsrecurly' ), 'required' => false ),
+            array( 'name' => 'city', 'label' => esc_html__( 'City', 'gravityformsrecurly' ), 'required' => true ),
+            array( 'name' => 'state', 'label' => esc_html__( 'State', 'gravityformsrecurly' ), 'required' => true ),
+            array( 'name' => 'zip', 'label' => esc_html__( 'Zip', 'gravityformsrecurly' ), 'required' => true ),
+            array( 'name' => 'country', 'label' => esc_html__( 'Country', 'gravityformsrecurly' ), 'required' => true ),
+            array( 'name' => 'recurlyCoupon', 'label' => esc_html__( 'Recurly Coupon', 'gravityformsrecurly' ), 'required' => false )
         );
 
         return $fields;
@@ -410,7 +410,7 @@ class GF_Recurly extends GFPaymentAddOn {
     public function get_payment_choices( $form ) {
         $fields  = GFAPI::get_fields_by_type( $form, array( 'product' ) );
         $choices = array(
-            array( 'label' => esc_html__( 'Select a Subscription Plan', 'recurwp' ), 'value' => '' ),
+            array( 'label' => esc_html__( 'Select a Subscription Plan', 'gravityformsrecurly' ), 'value' => '' ),
         );
 
         return $choices;
@@ -426,7 +426,7 @@ class GF_Recurly extends GFPaymentAddOn {
      */
     public function recurring_amount_choices() {
 
-        // Instantiate RecurWP
+        // Instantiate
         $recurly = new GF_Recurly_Helper();
 
         $form                = $this->get_current_form();
@@ -561,7 +561,7 @@ class GF_Recurly extends GFPaymentAddOn {
         // If form is updated
         if ( isset( $_POST['gform-settings-save'] ) ) {
 
-            // Instantiate RecurWP
+            // Instantiate
             $recurly = new GF_Recurly_Helper();
 
             // Get options
@@ -574,26 +574,26 @@ class GF_Recurly extends GFPaymentAddOn {
 
         return array(
             array(
-                'title'  => esc_html__( 'RecurWP Add-On Settings', 'recurwp' ),
+                'title'  => esc_html__( 'Gravity Form Recurly Add-On Settings', 'gravityformsrecurly' ),
                 'fields' => array(
                     array(
                         'name'              => 'recurly_subdomain',
-                        'tooltip'           => esc_html__( '', 'recurwp' ),
-                        'label'             => esc_html__( 'Recurly Subdomain', 'recurwp' ),
+                        'tooltip'           => esc_html__( '', 'gravityformsrecurly' ),
+                        'label'             => esc_html__( 'Recurly Subdomain', 'gravityformsrecurly' ),
                         'type'              => 'text',
                         'class'             => 'small',
                         'feedback_callback' => array( $this, 'is_valid_recurly_subdomain' ),
                     ),
                     array(
                         'name'              => 'recurly_private_key',
-                        'tooltip'           => esc_html__( '', 'recurwp' ),
-                        'label'             => esc_html__( 'Recurly API Private Key', 'recurwp' ),
+                        'tooltip'           => esc_html__( '', 'gravityformsrecurly' ),
+                        'label'             => esc_html__( 'Recurly API Private Key', 'gravityformsrecurly' ),
                         'type'              => 'text',
                         'class'             => 'small',
                         'feedback_callback' => array( $this, 'is_valid_recurly_key' ),
                     ),
                     array(
-                        'label'           => esc_html__( 'Is Recurly Validated?', 'recurwp' ),
+                        'label'           => esc_html__( 'Is Recurly Validated?', 'gravityformsrecurly' ),
                         'type'            => 'hidden',
                         'name'            => 'recurly_info_validated',
                     ),
@@ -623,13 +623,13 @@ class GF_Recurly extends GFPaymentAddOn {
 
         // Return Recurly notification events.
         return array(
-            'complete_payment'          => esc_html__( 'Payment Completed', 'recurwp' ),
-            'refund_payment'            => esc_html__( 'Payment Refunded', 'recurwp' ),
-            'fail_payment'              => esc_html__( 'Payment Failed', 'recurwp' ),
-            'create_subscription'       => esc_html__( 'Subscription Created', 'recurwp' ),
-            'cancel_subscription'       => esc_html__( 'Subscription Canceled', 'recurwp' ),
-            'add_subscription_payment'  => esc_html__( 'Subscription Payment Added', 'recurwp' ),
-            'fail_subscription_payment' => esc_html__( 'Subscription Payment Failed', 'recurwp' ),
+            'complete_payment'          => esc_html__( 'Payment Completed', 'gravityformsrecurly' ),
+            'refund_payment'            => esc_html__( 'Payment Refunded', 'gravityformsrecurly' ),
+            'fail_payment'              => esc_html__( 'Payment Failed', 'gravityformsrecurly' ),
+            'create_subscription'       => esc_html__( 'Subscription Created', 'gravityformsrecurly' ),
+            'cancel_subscription'       => esc_html__( 'Subscription Canceled', 'gravityformsrecurly' ),
+            'add_subscription_payment'  => esc_html__( 'Subscription Payment Added', 'gravityformsrecurly' ),
+            'fail_subscription_payment' => esc_html__( 'Subscription Payment Failed', 'gravityformsrecurly' ),
         );
 
     }
@@ -806,16 +806,16 @@ class GF_Recurly extends GFPaymentAddOn {
     */
     public function is_valid_recurly_info() {
 
-        // Instantiate RecurWP
-        $recurwp = new GF_Recurly_Helper();
-        $subdomain = $recurwp->get_gf_option( 'recurly_subdomain' );
-        $api_key = $recurwp->get_gf_option( 'recurly_private_key' );
+        // Instantiate
+        $recurly = new GF_Recurly_Helper();
+        $subdomain = $recurly->get_gf_option( 'recurly_subdomain' );
+        $api_key = $recurly->get_gf_option( 'recurly_private_key' );
 
         // Make sure subdomain and API key are not empty
         if ( ! rgblank( $subdomain ) && ! rgblank( $api_key ) ) {
 
             // Validate info
-            $validate_info = $recurwp->validate_info($api_key, $subdomain);
+            $validate_info = $recurly->validate_info($api_key, $subdomain);
 
             // Returns true or false
             return $validate_info;

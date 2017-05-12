@@ -124,7 +124,7 @@ if ( ! class_exists( 'GF_Recurly_Helper' ) ) {
         }
 
         /**
-         * Retrieves RecurWP Gravity Form options
+         * Retrieves Gravity Form Recurly options
          *
          * @since  1.0.0
          * @access public
@@ -484,8 +484,8 @@ if ( ! class_exists( 'GF_Recurly_Helper' ) ) {
          */
         public function extract_plan_code_from_entry($entry) {
             foreach($entry as $e) {
-                if (strpos($e, 'recurwpSelectedPlan_x_') !== false) {
-                    $plan_code = explode('recurwpSelectedPlan_x_', $e);
+                if (strpos($e, 'gfRecurlySelectedPlan_x_') !== false) {
+                    $plan_code = explode('gfRecurlySelectedPlan_x_', $e);
                     return $plan_code[1];
                 }
             }

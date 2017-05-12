@@ -87,15 +87,15 @@ var RecurWPFieldCoupon = (function (_super) {
      * @param   {number}    formId
      */
     function RecurWPFieldCoupon(formId) {
-        var _this = 
+        var _this =
         /** Parent class constructor */
         _super.call(this, formId) || this;
         var __this = _this;
-        jQuery('#recurwp_coupon_container_' + _this.formId + ' #recurwpCouponApply').on('click', function () {
-            var couponCode = jQuery(this).siblings('input.recurwp_coupon_code').val();
+        jQuery('#gf_recurly_coupon_container_' + _this.formId + ' #gfRecurlyCouponApply').on('click', function () {
+            var couponCode = jQuery(this).siblings('input.gf_recurly_coupon_code').val();
             __this.apply(couponCode);
         });
-        jQuery(document).on('click', '#recurwp_coupon_container_' + _this.formId + ' #recurwpCouponRemove', function (e) {
+        jQuery(document).on('click', '#gf_recurly_coupon_container_' + _this.formId + ' #recurwpCouponRemove', function (e) {
             e.preventDefault();
             __this.remove();
         });
@@ -103,21 +103,21 @@ var RecurWPFieldCoupon = (function (_super) {
     }
     RecurWPFieldCoupon.prototype.apply = function (couponCode) {
         var __this = this;
-        //var couponCode = jQuery('#recurwp_coupon_code_' + formId).val();
+        //var couponCode = jQuery('#gf_recurly_coupon_code_' + formId).val();
         // Make sure coupon provided
         if (couponCode === 'undefined' || couponCode == '') {
             return;
         }
-        var $applyButton = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwpCouponApply'), $inputField = jQuery('#recurwp_coupon_container_' + this.formId + 'input.recurwp_coupon_code');
+        var $applyButton = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gfRecurlyCouponApply'), $inputField = jQuery('#gf_recurly_coupon_container_' + this.formId + 'input.gf_recurly_coupon_code');
         if ($applyButton.prop('disabled') || $inputField.prop('disabled')) {
             return;
         }
-        // Filter everything except alphanumeric, hyphen and underscore 
+        // Filter everything except alphanumeric, hyphen and underscore
         var safeCouponCode = this.sanitize(couponCode);
         // Show spinner and disable apply btn
         this.spinner();
         this.disableFields();
-        // Store precoupon value 
+        // Store precoupon value
         window.RecurWPTotalValuePreCoupon = this.total.get();
         // Ajax post coupon code to recurly API
         jQuery.ajax({
@@ -151,7 +151,7 @@ var RecurWPFieldCoupon = (function (_super) {
      * @returns void
      */
     RecurWPFieldCoupon.prototype.remove = function () {
-        var $couponInfo = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_info');
+        var $couponInfo = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_info');
         var preCouponTotal = window.RecurWPTotalValuePreCoupon;
         // Show spinner
         this.spinner();
@@ -161,7 +161,7 @@ var RecurWPFieldCoupon = (function (_super) {
         $couponInfo.empty();
         // Reset form total
         this.total.set(preCouponTotal);
-        // Hide spinner 
+        // Hide spinner
         this.spinner('hide');
     };
     /**
@@ -170,7 +170,7 @@ var RecurWPFieldCoupon = (function (_super) {
      * @returns void
      */
     RecurWPFieldCoupon.prototype.empty = function () {
-        var $couponInfo = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_info');
+        var $couponInfo = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_info');
         // Enable fields
         this.disableFields('enable');
         // Empty coupon info
@@ -190,7 +190,7 @@ var RecurWPFieldCoupon = (function (_super) {
      */
     RecurWPFieldCoupon.prototype.spinner = function (state) {
         if (state === void 0) { state = 'show'; }
-        var $spinner = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_spinner');
+        var $spinner = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_spinner');
         if (state == 'show') {
             $spinner.show();
         }
@@ -203,7 +203,7 @@ var RecurWPFieldCoupon = (function (_super) {
      */
     RecurWPFieldCoupon.prototype.disableFields = function (state) {
         if (state === void 0) { state = 'disable'; }
-        var $applyButton = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwpCouponApply'), $inputField = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_code_' + this.formId);
+        var $applyButton = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gfRecurlyCouponApply'), $inputField = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_code_' + this.formId);
         if (state == 'disable') {
             $applyButton.prop('disabled', true);
             $inputField.prop('disabled', true);
@@ -217,9 +217,9 @@ var RecurWPFieldCoupon = (function (_super) {
         if (isSuccessful === void 0) { isSuccessful = false; }
         if (couponCode === void 0) { couponCode = ''; }
         if (discountValue === void 0) { discountValue = ''; }
-        var $couponInfo = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_info');
-        var $couponError = jQuery('#recurwp_coupon_container_' + this.formId + ' #recurwp_coupon_error');
-        // If correct coupon 
+        var $couponInfo = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_info');
+        var $couponError = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_error');
+        // If correct coupon
         if (isSuccessful) {
             var couponDetails = "\n            <table class=\"recurwp_coupon_table\">\n                <tr>\n                    <td><a href=\"#\" class=\"recurwp_coupon_remove\" id=\"recurwpCouponRemove\" title=\"Remove Coupon\">x</a> " + couponCode + "</td>\n                    <td>" + discountValue + "</td>\n                </tr>\n            </table>\n            ";
             $couponInfo.html(couponDetails);
@@ -247,7 +247,7 @@ var RecurWPFieldProduct = (function (_super) {
      * @param   {number}    formId
      */
     function RecurWPFieldProduct(formId) {
-        var _this = 
+        var _this =
         /** Parent class constructor */
         _super.call(this, formId) || this;
         /** Scope thingy */
@@ -286,7 +286,7 @@ var RecurWPFieldProduct = (function (_super) {
      * @param   {string}    selector
      */
     RecurWPFieldProduct.prototype.getInstances = function () {
-        var i = document.querySelectorAll('.recurwp_product_container');
+        var i = document.querySelectorAll('.gf_recurly_product_container');
         return i;
     };
     /**
@@ -317,7 +317,7 @@ var RecurWPFieldProduct = (function (_super) {
     };
     /**
      * Note: The following functions handle addition and
-     * removal of 'recurwpSelectedPlan_x_' string. If
+     * removal of 'gfRecurlySelectedPlan_x_' string. If
      * this string is prefixed to a particular recurly plan
      * field, it means that the field is visible/active.
      * We then treat the field as the provider of plan_code
@@ -325,7 +325,7 @@ var RecurWPFieldProduct = (function (_super) {
      * better ways, if only gravity forms liked developers.
      */
     /**
-     * Remove recurwpSelectedPlan_x_ from provided instance
+     * Remove gfRecurlySelectedPlan_x_ from provided instance
      *
      * @param instance
      */
@@ -339,7 +339,7 @@ var RecurWPFieldProduct = (function (_super) {
         }
     };
     /**
-     * Remove recurwpSelectedPlan_x_ from every instance
+     * Remove gfRecurlySelectedPlan_x_ from every instance
      */
     RecurWPFieldProduct.prototype.unsetInstancesValues = function () {
         var instances = this.getInstances();
@@ -349,14 +349,14 @@ var RecurWPFieldProduct = (function (_super) {
         }
     };
     /**
-     * Add recurwpSelectedPlan_x_ to provided instance
+     * Add gfRecurlySelectedPlan_x_ to provided instance
      *
      * @param instance
      */
     RecurWPFieldProduct.prototype.updateInstanceValue = function (instance) {
         var instanceInput = jQuery(instance).children('input');
         var instanceCurrentValue = instanceInput.val();
-        var instanceNewValue = 'recurwpSelectedPlan_x_' + instanceCurrentValue;
+        var instanceNewValue = 'gfRecurlySelectedPlan_x_' + instanceCurrentValue;
         instanceInput.val(instanceNewValue);
     };
     return RecurWPFieldProduct;

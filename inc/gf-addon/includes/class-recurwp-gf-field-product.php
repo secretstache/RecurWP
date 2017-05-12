@@ -4,7 +4,7 @@ if ( ! class_exists( 'GFForms' ) ) {
     die();
 }
 
-class RecurWP_GF_Field_Product extends GF_Field {
+class GF_Field_Recurly_Product extends GF_Field {
 
     /**
      * @var string $type The field type.
@@ -17,7 +17,7 @@ class RecurWP_GF_Field_Product extends GF_Field {
      * @return string
      */
     public function get_form_editor_field_title() {
-        return esc_attr__( 'Recurly Products', 'recurwp' );
+        return esc_attr__( 'Recurly Products', 'gravityformsrecurly' );
     }
 
     /**
@@ -124,7 +124,7 @@ class RecurWP_GF_Field_Product extends GF_Field {
         }
         if ($field_obj) {
             $recurly               = new GF_Recurly_Helper();
-            $plan_code             = $field_obj['recurwpFieldPlan'];
+            $plan_code             = $field_obj['gfRecurlyFieldPlan'];
             $plan_price_cents      = $recurly->get_plan_price($plan_code);
             $plan_price            = $recurly->cents_to_dollars($plan_price_cents);
             $value                 = esc_attr( $plan_code );
@@ -132,8 +132,8 @@ class RecurWP_GF_Field_Product extends GF_Field {
 
 		$input = "<input name='input_{$id}' id='{$field_id}' type='{$html_input_type}' value='{$value}' data-plan-price='{$plan_price}' class='{$class}'  {$tabindex} {$logic_event} {$disabled_text}/>";
 
-		return sprintf( "<div class='ginput_container ginput_container_text recurwp_product_container'>%s</div>", $input );
+		return sprintf( "<div class='ginput_container ginput_container_text gf_recurly_product_container'>%s</div>", $input );
 	}
 }
 
-GF_Fields::register( new RecurWP_GF_Field_Product() );
+GF_Fields::register( new GF_Field_Recurly_Product() );
