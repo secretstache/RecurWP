@@ -50,7 +50,7 @@ class GF_Recurly extends GFPaymentAddOn {
      *
      * @var string $_slug The slug used for this plugin.
      */
-    protected $_slug = 'recurwp';
+    protected $_slug = 'gfrecurly';
 
     /**
      * Defines the main plugin file.
@@ -60,7 +60,7 @@ class GF_Recurly extends GFPaymentAddOn {
      *
      * @var string $_path The path to the main plugin file, relative to the plugins folder.
      */
-    protected $_path = GF_RECURLY_DIR . '/recurwp.php';
+    protected $_path = GF_RECURLY_DIR . '/recurly.php';
 
     /**
      * Defines the full path to this class file.
@@ -171,8 +171,8 @@ class GF_Recurly extends GFPaymentAddOn {
     public function pre_init() {
         parent::pre_init();
         if ( $this->is_gravityforms_supported() && class_exists( 'GF_Field' ) ) {
-            require_once( 'includes/class-recurwp-gf-field-coupon.php' );
-            require_once( 'includes/class-recurwp-gf-field-product.php' );
+            require_once( 'includes/class-gf-field-recurly-coupon.php' );
+            require_once( 'includes/class-gf-field-recurly-product.php' );
         }
     }
 
@@ -212,7 +212,7 @@ class GF_Recurly extends GFPaymentAddOn {
             ),
             array(
                 'handle'    => 'gf_recurly_frontend',
-                'src'       => $this->get_base_url() . '/../../js/frontend.js',
+                'src'       => GF_RECURLY_URL . 'js/frontend.js',
                 'version'   => $this->_version,
                 'deps'      => array( 'jquery', 'recurly.js', 'gform_json' ),
                 'in_footer' => false,
@@ -250,7 +250,7 @@ class GF_Recurly extends GFPaymentAddOn {
         $styles = array(
             array(
                 "handle"    => "gf_recurly_css",
-                "src"       => GF_RECURLY_URL . "/css/recurwp.css",
+                "src"       => GF_RECURLY_URL . "css/gf-recurly.css",
                 "version"   => GFCommon::$version,
                 "enqueue"   => array(
                     array( $this),

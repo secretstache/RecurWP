@@ -27,9 +27,9 @@ define( 'GF_RECURLY_DIR_LIB', trailingslashit(GF_RECURLY_DIR . '/lib') );
 if ( ! class_exists('Recurly_Client') ) {
     require_once( GF_RECURLY_DIR_LIB . 'recurly.php' );
 }
-require_once( GF_RECURLY_DIR_INC . 'class-recurwp.php' );
+require_once( GF_RECURLY_DIR_INC . 'class-gf-recurly-helper.php' );
 
-// If Gravity Forms is loaded, bootstrap the RecurWP Recurly Add-On.
+// If Gravity Forms is loaded, bootstrap the Gravityforms Recurly Add-On.
 add_action( 'gform_loaded', array( 'GF_Recurly_Bootstrap', 'load' ), 5 );
 
 /**
@@ -113,14 +113,14 @@ add_action( 'wp_ajax_nopriv_get_total_after_coupon', 'gf_recurly_ajax_apply_coup
  */
 function gf_recurly_submission_data( $submission_data, $feed, $form, $entry ) {
 
-    // Instantiate RecurWP
-    $recurwp = new GF_Recurly_Helper();
+    // Instantiate GF_Recurly_Helper
+    $recurly_helper = new GF_Recurly_Helper();
 
-    $plan_code = $recurwp->extract_plan_code_from_entry($entry);
+    $plan_code = $recurly_helper->extract_plan_code_from_entry($entry);
     if ($plan_code) {
-        $plan_price_in_cents = $recurwp->get_plan_price($plan_code);
+        $plan_price_in_cents = $recurly_helper->get_plan_price($plan_code);
         $submission_data['plan_code'] = $plan_code;
-        $submission_data['payment_amount'] = $recurwp->cents_to_dollars($plan_price_in_cents);
+        $submission_data['payment_amount'] = $recurly_helper->cents_to_dollars($plan_price_in_cents);
     }
 
     return $submission_data;

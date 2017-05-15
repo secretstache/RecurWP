@@ -136,8 +136,7 @@ if ( ! class_exists( 'GF_Recurly_Helper' ) ) {
         public static function get_gf_option( $option_name ) {
 
             // Get all options
-            $options = get_option( 'gravityformsaddon_recurly_settings' );
-
+            $options = get_option( 'gravityformsaddon_gfrecurly_settings' );
             return isset( $options[ $option_name ] ) ? $options[ $option_name ] : null;
         }
 
@@ -192,7 +191,8 @@ if ( ! class_exists( 'GF_Recurly_Helper' ) ) {
                     return false;
                 }
             } catch (Exception $e) {
-
+                // print_r($e);
+                // die();
                 // Get rid of error for now
                 unset($e);
 

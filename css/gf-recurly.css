@@ -14,12 +14,12 @@
     display: inline-block;
 }
 
-.recurwp_coupon_table {
+.gf_recurly_coupon_table {
     min-width: 300px;
     width: auto;
     margin-top: 5px;
 }
-.recurwp_coupon_remove {
+.gf_recurly_coupon_remove {
     display: inline-block;
     color: #790000;
     text-decoration: none;

@@ -9,42 +9,42 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 /**
- * RecurWPField class
+ * GFRecurlyField class
  */
-var RecurWPField = (function () {
+var GFRecurlyField = (function () {
     /**
      * Constructor
      *
      * @param   {number}    formId
      */
-    function RecurWPField(formId) {
+    function GFRecurlyField(formId) {
         /** Define form ID */
         this.formId = formId;
-        /** Instantiate RecurWPTotal */
-        this.total = new RecurWPTotal(this.formId);
+        /** Instantiate GFRecurlyTotal */
+        this.total = new GFRecurlyTotal(this.formId);
     }
-    return RecurWPField;
+    return GFRecurlyField;
 }());
 /**
- * RecurWP Total
+ * GF Recurly Total
  */
-var RecurWPTotal = (function () {
+var GFRecurlyTotal = (function () {
     /**
      * Constructor
      *
      * @param   {number}    formId
      */
-    function RecurWPTotal(formId) {
+    function GFRecurlyTotal(formId) {
         this.formId = formId;
         this.init();
     }
     /**
      * Initialize total field
      */
-    RecurWPTotal.prototype.init = function () {
+    GFRecurlyTotal.prototype.init = function () {
         /** Set total */
         gform.addFilter('gform_product_total', function (total, formId) {
-            window.RecurWPTotalValue = total;
+            window.GFRecurlyTotalValue = total;
             return total;
         }, 50);
     };
@@ -53,10 +53,10 @@ var RecurWPTotal = (function () {
      *
      * @returns total {string}
      */
-    RecurWPTotal.prototype.get = function () {
-        return window.RecurWPTotalValue;
+    GFRecurlyTotal.prototype.get = function () {
+        return window.GFRecurlyTotalValue;
     };
-    RecurWPTotal.prototype.getNumber = function () {
+    GFRecurlyTotal.prototype.getNumber = function () {
         var _total = this.get();
         var total = _total.split(",").join("");
         return Number(total);
@@ -66,28 +66,28 @@ var RecurWPTotal = (function () {
      *
      * @param newTotal {number}
      */
-    RecurWPTotal.prototype.set = function (newTotal) {
+    GFRecurlyTotal.prototype.set = function (newTotal) {
         /** Update total */
         gform.addFilter('gform_product_total', function (total, formId) {
-            window.RecurWPTotalValue = newTotal;
+            window.GFRecurlyTotalValue = newTotal;
             return newTotal;
         }, 50);
         gformCalculateTotalPrice(this.formId);
     };
-    return RecurWPTotal;
+    return GFRecurlyTotal;
 }());
 /**
- * RecurWP Coupon Field
+ * GF Recurly Coupon Field
  */
-var RecurWPFieldCoupon = (function (_super) {
-    __extends(RecurWPFieldCoupon, _super);
+var GFRecurlyFieldCoupon = (function (_super) {
+    __extends(GFRecurlyFieldCoupon, _super);
     /**
      * Constructor
      *
      * @param   {number}    formId
      */
-    function RecurWPFieldCoupon(formId) {
-        var _this =
+    function GFRecurlyFieldCoupon(formId) {
+        var _this = 
         /** Parent class constructor */
         _super.call(this, formId) || this;
         var __this = _this;
@@ -95,13 +95,13 @@ var RecurWPFieldCoupon = (function (_super) {
             var couponCode = jQuery(this).siblings('input.gf_recurly_coupon_code').val();
             __this.apply(couponCode);
         });
-        jQuery(document).on('click', '#gf_recurly_coupon_container_' + _this.formId + ' #recurwpCouponRemove', function (e) {
+        jQuery(document).on('click', '#gf_recurly_coupon_container_' + _this.formId + ' #gfRecurlyCouponRemove', function (e) {
             e.preventDefault();
             __this.remove();
         });
         return _this;
     }
-    RecurWPFieldCoupon.prototype.apply = function (couponCode) {
+    GFRecurlyFieldCoupon.prototype.apply = function (couponCode) {
         var __this = this;
         //var couponCode = jQuery('#gf_recurly_coupon_code_' + formId).val();
         // Make sure coupon provided
@@ -118,11 +118,11 @@ var RecurWPFieldCoupon = (function (_super) {
         this.spinner();
         this.disableFields();
         // Store precoupon value
-        window.RecurWPTotalValuePreCoupon = this.total.get();
+        window.GFRecurlyTotalValuePreCoupon = this.total.get();
         // Ajax post coupon code to recurly API
         jQuery.ajax({
             method: 'POST',
-            url: window.recurwp_frontend_strings.ajaxurl,
+            url: window.gf_recurly_frontend_strings.ajaxurl,
             data: {
                 'action': 'get_total_after_coupon',
                 'couponCode': safeCouponCode,
@@ -150,9 +150,9 @@ var RecurWPFieldCoupon = (function (_super) {
      *
      * @returns void
      */
-    RecurWPFieldCoupon.prototype.remove = function () {
+    GFRecurlyFieldCoupon.prototype.remove = function () {
         var $couponInfo = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_info');
-        var preCouponTotal = window.RecurWPTotalValuePreCoupon;
+        var preCouponTotal = window.GFRecurlyTotalValuePreCoupon;
         // Show spinner
         this.spinner();
         // Enable fields
@@ -169,7 +169,7 @@ var RecurWPFieldCoupon = (function (_super) {
      *
      * @returns void
      */
-    RecurWPFieldCoupon.prototype.empty = function () {
+    GFRecurlyFieldCoupon.prototype.empty = function () {
         var $couponInfo = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_info');
         // Enable fields
         this.disableFields('enable');
@@ -181,14 +181,14 @@ var RecurWPFieldCoupon = (function (_super) {
      *
      * @param couponCode {string}
      */
-    RecurWPFieldCoupon.prototype.sanitize = function (couponCode) {
+    GFRecurlyFieldCoupon.prototype.sanitize = function (couponCode) {
         var safeCouponCode = couponCode.replace(/[^A-Za-z0-9_-]+/g, '');
         return safeCouponCode;
     };
     /**
      * Show/Hide the spinner
      */
-    RecurWPFieldCoupon.prototype.spinner = function (state) {
+    GFRecurlyFieldCoupon.prototype.spinner = function (state) {
         if (state === void 0) { state = 'show'; }
         var $spinner = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_spinner');
         if (state == 'show') {
@@ -201,7 +201,7 @@ var RecurWPFieldCoupon = (function (_super) {
     /**
      * Enable/Disable apply button
      */
-    RecurWPFieldCoupon.prototype.disableFields = function (state) {
+    GFRecurlyFieldCoupon.prototype.disableFields = function (state) {
         if (state === void 0) { state = 'disable'; }
         var $applyButton = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gfRecurlyCouponApply'), $inputField = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_code_' + this.formId);
         if (state == 'disable') {
@@ -213,7 +213,7 @@ var RecurWPFieldCoupon = (function (_super) {
             $inputField.prop('disabled', false);
         }
     };
-    RecurWPFieldCoupon.prototype.couponApplyResponse = function (isSuccessful, couponCode, discountValue) {
+    GFRecurlyFieldCoupon.prototype.couponApplyResponse = function (isSuccessful, couponCode, discountValue) {
         if (isSuccessful === void 0) { isSuccessful = false; }
         if (couponCode === void 0) { couponCode = ''; }
         if (discountValue === void 0) { discountValue = ''; }
@@ -221,7 +221,7 @@ var RecurWPFieldCoupon = (function (_super) {
         var $couponError = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_error');
         // If correct coupon
         if (isSuccessful) {
-            var couponDetails = "\n            <table class=\"recurwp_coupon_table\">\n                <tr>\n                    <td><a href=\"#\" class=\"recurwp_coupon_remove\" id=\"recurwpCouponRemove\" title=\"Remove Coupon\">x</a> " + couponCode + "</td>\n                    <td>" + discountValue + "</td>\n                </tr>\n            </table>\n            ";
+            var couponDetails = "\n            <table class=\"gf_recurly_coupon_table\">\n                <tr>\n                    <td><a href=\"#\" class=\"gf_recurly_coupon_remove\" id=\"gfRecurlyCouponRemove\" title=\"Remove Coupon\">x</a> " + couponCode + "</td>\n                    <td>" + discountValue + "</td>\n                </tr>\n            </table>\n            ";
             $couponInfo.html(couponDetails);
             // Disable apply button
             this.disableFields();
@@ -234,20 +234,20 @@ var RecurWPFieldCoupon = (function (_super) {
             this.disableFields('enable');
         }
     };
-    return RecurWPFieldCoupon;
-}(RecurWPField));
+    return GFRecurlyFieldCoupon;
+}(GFRecurlyField));
 /**
- * RECURWP PRODUCT FIELD
+ * GF Recurly PRODUCT FIELD
  */
-var RecurWPFieldProduct = (function (_super) {
-    __extends(RecurWPFieldProduct, _super);
+var GFRecurlyFieldProduct = (function (_super) {
+    __extends(GFRecurlyFieldProduct, _super);
     /**
      * Constructor
      *
      * @param   {number}    formId
      */
-    function RecurWPFieldProduct(formId) {
-        var _this =
+    function GFRecurlyFieldProduct(formId) {
+        var _this = 
         /** Parent class constructor */
         _super.call(this, formId) || this;
         /** Scope thingy */
@@ -263,7 +263,7 @@ var RecurWPFieldProduct = (function (_super) {
     /**
      * Initialize
      */
-    RecurWPFieldProduct.prototype.init = function () {
+    GFRecurlyFieldProduct.prototype.init = function () {
         var __this = this;
         jQuery(document).ready(function () {
             var visibleInstance = __this.getVisibleInstance();
@@ -285,22 +285,23 @@ var RecurWPFieldProduct = (function (_super) {
      *
      * @param   {string}    selector
      */
-    RecurWPFieldProduct.prototype.getInstances = function () {
+    GFRecurlyFieldProduct.prototype.getInstances = function () {
         var i = document.querySelectorAll('.gf_recurly_product_container');
         return i;
     };
     /**
      * Get the visible instance
      *
-     * RecurWP treats the first visible instance as the selected
+     * GF_Recurly treats the first visible instance as the selected
      * plan.
      *
      * @param   {array} instances   All instances of a selector
      *
      * @since v1.0
      */
-    RecurWPFieldProduct.prototype.getVisibleInstance = function () {
+    GFRecurlyFieldProduct.prototype.getVisibleInstance = function () {
         var instances = this.getInstances();
+        console.log(instances);
         for (var _i = 0, instances_1 = instances; _i < instances_1.length; _i++) {
             var i = instances_1[_i];
             if (i.offsetParent != null) {
@@ -311,7 +312,7 @@ var RecurWPFieldProduct = (function (_super) {
     /**
      * Get the value (plan_code) of an instance
      */
-    RecurWPFieldProduct.prototype.getPlanPriceFromInstance = function (instance) {
+    GFRecurlyFieldProduct.prototype.getPlanPriceFromInstance = function (instance) {
         var instanceChild = jQuery(instance).children('input');
         return instanceChild.data('planPrice');
     };
@@ -329,7 +330,7 @@ var RecurWPFieldProduct = (function (_super) {
      *
      * @param instance
      */
-    RecurWPFieldProduct.prototype.unsetInstanceValue = function (instance) {
+    GFRecurlyFieldProduct.prototype.unsetInstanceValue = function (instance) {
         var instanceInput = jQuery(instance).children('input');
         var instanceCurrentValue = instanceInput.val();
         var splitValues = instanceCurrentValue.split('_x_');
@@ -341,7 +342,7 @@ var RecurWPFieldProduct = (function (_super) {
     /**
      * Remove gfRecurlySelectedPlan_x_ from every instance
      */
-    RecurWPFieldProduct.prototype.unsetInstancesValues = function () {
+    GFRecurlyFieldProduct.prototype.unsetInstancesValues = function () {
         var instances = this.getInstances();
         for (var _i = 0, instances_2 = instances; _i < instances_2.length; _i++) {
             var i = instances_2[_i];
@@ -353,33 +354,33 @@ var RecurWPFieldProduct = (function (_super) {
      *
      * @param instance
      */
-    RecurWPFieldProduct.prototype.updateInstanceValue = function (instance) {
+    GFRecurlyFieldProduct.prototype.updateInstanceValue = function (instance) {
         var instanceInput = jQuery(instance).children('input');
         var instanceCurrentValue = instanceInput.val();
         var instanceNewValue = 'gfRecurlySelectedPlan_x_' + instanceCurrentValue;
         instanceInput.val(instanceNewValue);
     };
-    return RecurWPFieldProduct;
-}(RecurWPField));
+    return GFRecurlyFieldProduct;
+}(GFRecurlyField));
 /**
- * RecurWP main class
+ * GF_Recurly main class
  */
-var RecurWP = (function () {
-    function RecurWP(formId) {
+var GF_Recurly = (function () {
+    function GF_Recurly(formId) {
         this.formId = formId;
-        this.total = new RecurWPTotal(this.formId);
-        this.couponField = new RecurWPFieldCoupon(this.formId);
-        this.productField = new RecurWPFieldProduct(this.formId);
+        this.total = new GFRecurlyTotal(this.formId);
+        this.couponField = new GFRecurlyFieldCoupon(this.formId);
+        this.productField = new GFRecurlyFieldProduct(this.formId);
     }
-    return RecurWP;
+    return GF_Recurly;
 }());
 jQuery(document).bind('gform_post_render', function (event, form_id) {
-    /** Instantiate Recurwp */
-    var recurwp = new RecurWP(form_id);
+    /** Instantiate GF Recurly */
+    var gf_recurly = new GF_Recurly(form_id);
     /** Watch for total change */
     jQuery('.ginput_total_' + form_id).next('input').on('change', function (e) {
         e.stopPropagation();
-        recurwp.couponField.empty();
+        gf_recurly.couponField.empty();
     });
-    recurwp.productField.init();
+    gf_recurly.productField.init();
 });

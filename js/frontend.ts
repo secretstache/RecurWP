@@ -4,14 +4,14 @@ declare var gform: any;
 declare var gformCalculateTotalPrice:any;
 
 /**
- * RecurWPField class
+ * GFRecurlyField class
  */
-abstract class RecurWPField {
+abstract class GFRecurlyField {
 
     /** * Gravity Form ID */
     public formId: number;
 
-    /** RecurWPTotal Instance */
+    /** GFRecurlyTotal Instance */
     public total:any;
 
     /**
@@ -23,8 +23,8 @@ abstract class RecurWPField {
         /** Define form ID */
         this.formId = formId;
 
-        /** Instantiate RecurWPTotal */
-        this.total = new RecurWPTotal(this.formId);
+        /** Instantiate GFRecurlyTotal */
+        this.total = new GFRecurlyTotal(this.formId);
     }
 }
 
@@ -32,16 +32,16 @@ abstract class RecurWPField {
  * Window interface
  */
 interface Window {
-    RecurWPTotalValue: string;
-    RecurWPTotalValuePreCoupon: string;
-    recurwp_frontend_strings: object;
+    GFRecurlyTotalValue: string;
+    GFRecurlyTotalValuePreCoupon: string;
+    gf_recurly_frontend_strings: object;
     gf_form_conditional_logic: [any];
 }
 
 /**
- * RecurWP Total
+ * GF Recurly Total
  */
-class RecurWPTotal {
+class GFRecurlyTotal {
 
     /** Gravity Form ID */
     public formId: number;
@@ -62,7 +62,7 @@ class RecurWPTotal {
     public init() {
         /** Set total */
         gform.addFilter('gform_product_total', function (total:string, formId:number) {
-            window.RecurWPTotalValue = total;
+            window.GFRecurlyTotalValue = total;
             return total;
         }, 50);
     }
@@ -73,7 +73,7 @@ class RecurWPTotal {
      * @returns total {string}
      */
     public get() {
-        return window.RecurWPTotalValue;
+        return window.GFRecurlyTotalValue;
     }
 
     public getNumber() {
@@ -90,7 +90,7 @@ class RecurWPTotal {
     public set(newTotal: string) {
         /** Update total */
         gform.addFilter('gform_product_total', function (total:string, formId:number) {
-            window.RecurWPTotalValue = newTotal;
+            window.GFRecurlyTotalValue = newTotal;
             return newTotal;
         }, 50);
         gformCalculateTotalPrice(this.formId);
@@ -98,9 +98,9 @@ class RecurWPTotal {
 }
 
 /**
- * RecurWP Coupon Field
+ * GF Recurly Coupon Field
  */
-class RecurWPFieldCoupon extends RecurWPField {
+class GFRecurlyFieldCoupon extends GFRecurlyField {
 
     /**
      * Constructor
@@ -119,7 +119,7 @@ class RecurWPFieldCoupon extends RecurWPField {
             __this.apply(couponCode);
         });
 
-        jQuery(document).on('click', '#gf_recurly_coupon_container_' + this.formId + ' #recurwpCouponRemove', function(e) {
+        jQuery(document).on('click', '#gf_recurly_coupon_container_' + this.formId + ' #gfRecurlyCouponRemove', function(e) {
             e.preventDefault();
             __this.remove();
         })
@@ -150,12 +150,12 @@ class RecurWPFieldCoupon extends RecurWPField {
         this.disableFields();
 
         // Store precoupon value
-        window.RecurWPTotalValuePreCoupon = this.total.get();
+        window.GFRecurlyTotalValuePreCoupon = this.total.get();
 
         // Ajax post coupon code to recurly API
         jQuery.ajax({
             method: 'POST',
-            url: window.recurwp_frontend_strings.ajaxurl,
+            url: window.gf_recurly_frontend_strings.ajaxurl,
             data: {
                 'action':           'get_total_after_coupon',
                 'couponCode':       safeCouponCode,
@@ -188,7 +188,7 @@ class RecurWPFieldCoupon extends RecurWPField {
      */
     public remove() {
         var $couponInfo = jQuery('#gf_recurly_coupon_container_' + this.formId + ' #gf_recurly_coupon_info');
-        var preCouponTotal = window.RecurWPTotalValuePreCoupon;
+        var preCouponTotal = window.GFRecurlyTotalValuePreCoupon;
 
         // Show spinner
         this.spinner();
@@ -261,9 +261,9 @@ class RecurWPFieldCoupon extends RecurWPField {
         // If correct coupon
         if (isSuccessful) {
             var couponDetails = `
-            <table class="recurwp_coupon_table">
+            <table class="gf_recurly_coupon_table">
                 <tr>
-                    <td><a href="#" class="recurwp_coupon_remove" id="recurwpCouponRemove" title="Remove Coupon">x</a> `+couponCode+`</td>
+                    <td><a href="#" class="gf_recurly_coupon_remove" id="gfRecurlyCouponRemove" title="Remove Coupon">x</a> `+couponCode+`</td>
                     <td>`+discountValue+`</td>
                 </tr>
             </table>
@@ -284,9 +284,9 @@ class RecurWPFieldCoupon extends RecurWPField {
 }
 
 /**
- * RECURWP PRODUCT FIELD
+ * GF Recurly PRODUCT FIELD
  */
-class RecurWPFieldProduct extends RecurWPField {
+class GFRecurlyFieldProduct extends GFRecurlyField {
 
     /**
      * Constructor
@@ -346,7 +346,7 @@ class RecurWPFieldProduct extends RecurWPField {
     /**
      * Get the visible instance
      *
-     * RecurWP treats the first visible instance as the selected
+     * GF_Recurly treats the first visible instance as the selected
      * plan.
      *
      * @param   {array} instances   All instances of a selector
@@ -355,6 +355,7 @@ class RecurWPFieldProduct extends RecurWPField {
      */
     public getVisibleInstance() {
         let instances = this.getInstances();
+        console.log(instances);
         for (let i of instances) {
             if (i.offsetParent != null) {
                 return i;
@@ -421,40 +422,40 @@ class RecurWPFieldProduct extends RecurWPField {
 }
 
 /**
- * RecurWP main class
+ * GF_Recurly main class
  */
-class RecurWP {
+class GF_Recurly {
 
     /** Form ID */
     public formId: number;
 
-    /** RecurWPTotal Instance */
+    /** GFRecurlyTotal Instance */
     public total:any;
 
-    /** RecurWPFieldCoupon Instance */
+    /** GFRecurlyFieldCoupon Instance */
     public couponField:any;
 
-    /** RecurWPFieldProduct Instance */
+    /** GFRecurlyFieldProduct Instance */
     public productField:any;
 
     constructor(formId: number) {
         this.formId         = formId;
-        this.total          = new RecurWPTotal(this.formId);
-        this.couponField    = new RecurWPFieldCoupon(this.formId);
-        this.productField   = new RecurWPFieldProduct(this.formId);
+        this.total          = new GFRecurlyTotal(this.formId);
+        this.couponField    = new GFRecurlyFieldCoupon(this.formId);
+        this.productField   = new GFRecurlyFieldProduct(this.formId);
     }
 }
 
 jQuery(document).bind('gform_post_render', function(event:any, form_id:number){
 
-    /** Instantiate Recurwp */
-    var recurwp = new RecurWP(form_id);
+    /** Instantiate GF Recurly */
+    var gf_recurly = new GF_Recurly(form_id);
 
     /** Watch for total change */
     jQuery('.ginput_total_'+form_id).next('input').on('change', function(e) {
         e.stopPropagation();
-        recurwp.couponField.empty();
+        gf_recurly.couponField.empty();
     });
 
-    recurwp.productField.init();
+    gf_recurly.productField.init();
 });
