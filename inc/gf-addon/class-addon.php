@@ -40,7 +40,7 @@ class GF_Recurly extends GFPaymentAddOn {
      *
      * @var string $_min_gravityforms_version The minimum version required.
      */
-    protected $_min_gravityforms_version = '1.9';
+    protected $_min_gravityforms_version = '2.1';
 
     /**
      * Defines the plugin slug.
