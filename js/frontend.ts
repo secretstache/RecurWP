@@ -417,8 +417,6 @@ class GFRecurlyFieldProduct extends GFRecurlyField {
 
         instanceInput.val(instanceNewValue);
     }
-
-
 }
 
 /**

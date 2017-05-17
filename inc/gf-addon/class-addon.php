@@ -216,9 +216,7 @@ class GF_Recurly extends GFPaymentAddOn {
                 'version'   => $this->_version,
                 'deps'      => array( 'jquery', 'recurly.js', 'gform_json' ),
                 'in_footer' => false,
-                'enqueue'   => array(
-                    array( $this, 'frontend_script_callback' ),
-                ),
+                'enqueue' => array( array( 'field_types' => array( 'recurly-product', 'recurly-coupon' ) ) ),
                 'strings'   => array(
                     'ajaxurl'       => admin_url( 'admin-ajax.php' )
                 )
