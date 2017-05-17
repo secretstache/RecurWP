@@ -126,7 +126,7 @@ class GF_Field_Recurly_Product extends GF_Field {
             $recurly               = new GF_Recurly_Helper();
             $plan_code             = $field_obj['gfRecurlyFieldPlan'];
             $plan_price_cents      = ($plan_code) ? $recurly->get_plan_price($plan_code) : 0;
-            $plan_price            = ($plan_price_cents) ? $recurly->cents_to_dollars : 0;
+            $plan_price            = ($plan_price_cents) ? $recurly->cents_to_dollars($plan_price_cents) : 0;
             $value                 = ($plan_price) ? esc_attr( $plan_code ) : '';
         }
 
