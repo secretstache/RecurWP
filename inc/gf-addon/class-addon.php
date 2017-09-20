@@ -686,6 +686,17 @@ class GF_Recurly extends GFPaymentAddOn {
         );
         $account_code           = $submission_data['email'];
 
+        $account_code_valid = $this->validate_recurly_account_code( $account_code );
+
+        if ( ! $account_code_valid['is_valid'] ) {
+
+	        return array(
+		        'is_success'      => $account_code_valid['is_valid'],
+		        'error_message'   => 'Unable to create account: ' . $account_code_valid['error_message'],
+	        );
+
+        }
+
         // Create user account
         $account_created = $recurly->maybe_create_account( $account_code, $account_info );
 
@@ -850,4 +861,56 @@ class GF_Recurly extends GFPaymentAddOn {
         return self::is_valid_recurly_info();
 
     }
+
+	/**
+	 * Validate Recurly account code
+     *
+     * allowed characters [a-z 0-9 @ - _ .] may not begin with a dot or hyphen character. Max of 50 characters.
+     *
+     * @since
+     *
+     * @author Naomi C. Bush for gravity+ <support@gravityplus.pro>
+     *
+	 * @param $account_code
+     *
+     * @return array
+	 */
+    public function validate_recurly_account_code( $account_code ) {
+
+        if ( 50 < mb_strlen($account_code, 'utf8') ) {
+
+	        $this->log_debug( __METHOD__ . "(): Recurly account code validation FAILED: {$account_code} is more than 50 characters" );
+
+	        return array( 'is_valid' => false, 'error_message' => 'Email address cannot be more than 50 characters' );
+
+        }
+
+	    if ( '.' == $account_code[0] ) {
+
+		    $this->log_debug( __METHOD__ . "(): Recurly account code validation FAILED: {$account_code} begins with a dot character" );
+
+		    return array( 'is_valid' => false, 'error_message' => 'Email address may not begin with a dot character' );
+
+	    }
+
+	    if ( '-' == $account_code[0] ) {
+
+		    $this->log_debug( __METHOD__ . "(): Recurly account code validation FAILED: {$account_code} begins with a hyphen character" );
+
+		    return array( 'is_valid' => false, 'error_message' => 'Email address may not begin with a hyphen character' );
+
+	    }
+
+	    if ( preg_match('/[^a-zA-Z0-9@\-_.]/', $account_code) ) {
+
+		    $this->log_debug( __METHOD__ . "(): Recurly account code validation FAILED: {$account_code} contains invalid character" );
+
+		    return array( 'is_valid' => false, 'error_message' => 'Email address may only contain the following characters: a-z 0-9 @ - _ .' );
+
+	    }
+
+
+        return array( 'is_valid' => true, 'error_message' => '' );
+    }
+
 }
