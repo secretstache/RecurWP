@@ -165,6 +165,22 @@ class GF_Recurly extends GFPaymentAddOn {
         return self::$_instance;
     }
 
+	/**
+	 * @see GFAddOn::minimum_requirements()
+	 *
+	 * @since
+	 *
+	 * @author Naomi C. Bush for gravity+ <support@gravityplus.pro>
+	 *
+	 * @return array
+	 */
+	public function minimum_requirements() {
+
+		return array( 'php' => array( 'version' => '5.4.0',
+                                      'extensions' => array( 'curl', 'dom', 'libxml', 'openssl' => array( 'version' => '1.0.1g' ) ) ) );
+
+	}
+
     /**
      * Include the field early so it is available when entry exports are being performed.
      */
